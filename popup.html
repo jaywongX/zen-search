@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>搜索结果优化器</title>
+  <title>Search Engine Results Selector</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -49,25 +49,7 @@
   <!-- 错误提示区域 -->
   <div id="errorContainer" class="error-container"></div>
 
-  <!-- 添加颜色设置面板 -->
-  <div id="settingsPanel" class="settings-panel">
-    <div class="settings-header">
-      <h3 data-i18n="settingsTitle">Settings</h3>
-      <button class="close-btn">×</button>
-    </div>
-    <div class="settings-content">
-      <div class="color-setting">
-        <label data-i18n="highlightColor">Highlight Color</label>
-        <div class="color-preview-container">
-          <input type="color" id="highlightColorPicker" value="#e6ffe6">
-          <div class="color-preview">
-            <div class="preview-text" data-i18n="previewText">Preview Text</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="popup.js"></script>
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html> 

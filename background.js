@@ -3,6 +3,8 @@
  * 用于处理扩展的后台任务和事件监听
  */
 
+import { translations } from './i18n.js';
+
 /**
  * 监听扩展安装或更新事件
  * 用于初始化扩展的默认配置和数据
@@ -80,6 +82,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+
+  // 更新右键菜单文本
+  if (message.type === 'updateContextMenus') {
+    const lang = message.language;
+    
+    chrome.contextMenus.update('add-to-favorites', {
+      title: translations[lang].contextMenuFavorite
+    });
+    
+    chrome.contextMenus.update('add-to-blocked', {
+      title: translations[lang].contextMenuBlock
+    });
+  }
+
+  // 监听内容脚本加载
+  if (message.type === 'contentScriptLoaded') {
+    console.log('Content script loaded in tab:', sender.tab.id);
+  }
 });
 
 /**
@@ -93,7 +113,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const isSearchPage = url && (
       url.includes('google.com/search') ||
       url.includes('bing.com/search') ||
-      url.includes('baidu.com/s')
+      url.includes('baidu.com/s') ||
+      url.includes('duckduckgo.com') ||
+      url.includes('yahoo.com/search') ||
+      url.includes('yandex.com/search')
     );
     
     if (isSearchPage) {
@@ -134,54 +157,65 @@ chrome.runtime.onSuspend.addListener(() => {
 
 // 创建右键菜单
 chrome.runtime.onInstalled.addListener(() => {
+  // 创建父菜单
   chrome.contextMenus.create({
-    id: 'mark-favorite',
-    title: '标记为偏好网站 ❤️',
+    id: 'sers-menu',
+    title: 'Search Engine Results Selector',
+    contexts: ['link']
+  });
+
+  // 添加子菜单
+  chrome.contextMenus.create({
+    id: 'add-to-favorites',
+    parentId: 'sers-menu',
+    title: '标记为偏好网站',
     contexts: ['link']
   });
 
   chrome.contextMenus.create({
-    id: 'mark-blocked',
-    title: '屏蔽此网站 🚫',
+    id: 'add-to-blocked',
+    parentId: 'sers-menu',
+    title: '屏蔽此网站',
     contexts: ['link']
   });
 });
 
 // 处理右键菜单点击
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const url = new URL(info.linkUrl);
-  const domain = url.hostname;
+  const url = info.linkUrl;
+  const domain = new URL(url).hostname;
 
-  chrome.storage.local.get(['favorites', 'blocked'], (data) => {
-    const favorites = data.favorites || [];
-    const blocked = data.blocked || [];
+  if (info.menuItemId === 'add-to-favorites') {
+    addToList(domain, 'favorites', tab.id);
+  } else if (info.menuItemId === 'add-to-blocked') {
+    addToList(domain, 'blocked', tab.id);
+  }
+});
+
+// 添加到列表
+function addToList(domain, listType, tabId) {
+  chrome.storage.local.get([listType, 'language'], (data) => {
+    const list = data[listType] || [];
+    const lang = data.language || 'en';
     
-    // 从所有列表中移除
-    const newFavorites = favorites.filter(site => site !== domain);
-    const newBlocked = blocked.filter(site => site !== domain);
+    if (!list.includes(domain)) {
+      list.push(domain);
+      chrome.storage.local.set({ [listType]: list }, () => {
+        // 显示本地化的提示消息
+        const message = listType === 'favorites' 
+          ? translations[lang].addedToFavorites.replace('{domain}', domain)
+          : translations[lang].siteBlocked.replace('{domain}', domain);
+        
+        chrome.tabs.sendMessage(tabId, {
+          type: 'showToast',
+          message: message
+        });
 
-    // 添加到新列表
-    if (info.menuItemId === 'mark-favorite') {
-      newFavorites.push(domain);
-      chrome.tabs.sendMessage(tab.id, {
-        action: 'showToast',
-        message: `已将 ${domain} 添加到偏好网站`
-      });
-    } else if (info.menuItemId === 'mark-blocked') {
-      newBlocked.push(domain);
-      chrome.tabs.sendMessage(tab.id, {
-        action: 'showToast',
-        message: `已屏蔽 ${domain}`
+        // 更新搜索结果
+        chrome.tabs.sendMessage(tabId, {
+          type: 'updateResults'
+        });
       });
     }
-
-    // 保存更新
-    chrome.storage.local.set({ 
-      favorites: newFavorites, 
-      blocked: newBlocked 
-    }, () => {
-      // 通知内容脚本刷新结果
-      chrome.tabs.sendMessage(tab.id, { action: 'refreshResults' });
-    });
   });
-}); 
+} 

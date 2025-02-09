@@ -162,7 +162,6 @@ function applyCustomStyle(element, styles) {
 function getCurrentEngine() {
   const host = window.location.host;
   const engine = Object.values(SEARCH_ENGINES).find(engine => host.includes(engine.host));
-  console.log('Current search engine:', engine); // 当前搜索引擎
   return engine;
 }
 
@@ -484,34 +483,38 @@ function matchDomain(url, pattern) {
  */
 function filterResults() {
   console.log('Filtering results...'); // 开始过滤
-  chrome.storage.local.get(['favorites', 'blocked'], (rules) => {
-    console.log('Filter rules:', rules); // 过滤规则
+  chrome.storage.local.get(['favorites', 'blocked', 'highlightColors'], (data) => {
+    console.log('Filter rules:', data); // 过滤规则
     const results = document.querySelectorAll(getCurrentEngine().resultSelector);
-    console.log('Found results:', results); // 找到的结果
+    const favorites = data.favorites || [];
+    const blocked = data.blocked || [];
+    const highlightColors = data.highlightColors || {};
 
     results.forEach(result => {
       const url = extractUrl(result);
       if (!url) {
-        console.warn('No URL found for result:', result); // URL提取失败
+        console.warn('No URL found for result:', result);
         return;
       }
 
       const domain = normalizeDomain(url);
-      console.log('Processing result:', { url, domain }); // 处理结果
       
-      // 检查每个规则
-      rules.favorites.forEach(rule => {
+      // 检查偏好网站
+      favorites.forEach(rule => {
         if (matchDomain(url, rule)) {
-            // 添加高亮类
-            result.classList.add('search-result-highlighted');
-            console.log('Highlighted:', { url, domain });
+          // result.classList.add('search-result-highlighted');
+          // 使用网站特定的颜色，如果没有则使用默认颜色
+          const color = highlightColors[rule] || '#e6ffe6';
+          result.style.backgroundColor = color;
+          console.log('Highlighted:', { url, domain, color });
         }
       });
-      rules.blocked.forEach(rule => {
+
+      // 检查屏蔽网站
+      blocked.forEach(rule => {
         if (matchDomain(url, rule)) {
-            // 添加隐藏类
-            result.classList.add('result-blocked');
-            console.log('Blocked:', { url, domain });
+          result.classList.add('result-blocked');
+          console.log('Blocked:', { url, domain });
         }
       });
     });
@@ -573,6 +576,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       updateHighlightStyle(message.color);
     }
   }
+  if (message.type === 'showToast') {
+    showToast(message.message);
+  }
+  if (message.type === 'setLanguage') {
+    chrome.storage.local.set({ language: message.language }, () => {
+      // 可能需要重新加载扩展
+      chrome.runtime.reload();
+    });
+  }
 });
 
 function updateSiteHighlight(url, color) {
@@ -584,5 +596,8 @@ function updateSiteHighlight(url, color) {
     }
   });
 }
+
+// 添加初始化确认
+chrome.runtime.sendMessage({ type: 'contentScriptLoaded' });
 
 initialize(); 

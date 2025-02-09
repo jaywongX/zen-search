@@ -1,3 +1,5 @@
+import { updateLanguage, getCurrentLanguage, getMessage } from './i18n.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Popup initialized'); // 初始化日志
 
@@ -9,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const ratingSelect = document.getElementById('ratingSelect');
   const addSiteBtn = document.getElementById('addSiteBtn');
   const sortSelect = document.getElementById('sortSelect');
+  const defaultColor = '#e6ffe6';
+  const defaultLang = 'en'
 
   // 加载网站列表
   function loadSites() {
@@ -108,26 +112,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const newRating = currentRating === 'favorite' ? 'blocked' : 'favorite';
         console.log('Rating clicked:', { url, currentRating, newRating });
         updateSiteRating(url, newRating);
-    }
-  });
+      }
+    });
 
-    // 添加URL编辑事件监听（同样需要考虑事件委托）
-  siteList.addEventListener('blur', '.site-url-input', (e) => {
-    const oldUrl = e.target.closest('.site-item').dataset.url;
-    const newUrl = e.target.value.trim();
-    console.log('URL editing:', { oldUrl, newUrl });
+    // 添加URL编辑事件监听（使用事件委托）
+    siteList.addEventListener('blur', (e) => {
+      if (e.target.closest('.site-item') && e.target.classList.contains('site-url-input')) {
+        const oldUrl = e.target.closest('.site-item').dataset.url;
+        const newUrl = e.target.value.trim();
+        console.log('URL editing:', { oldUrl, newUrl });
 
-    if (oldUrl === newUrl) return;
-    
-    if (!validateInput(newUrl)) {
-        console.warn('Invalid URL:', newUrl);
-        e.target.value = oldUrl; // 恢复原值
-        showToast('请输入有效的URL或正则表达式');
-        return;
-    }
+        if (oldUrl === newUrl) return;
 
-    updateSiteUrl(oldUrl, newUrl);
-  });
+        if (!validateInput(newUrl)) {
+          console.warn('Invalid URL:', newUrl);
+          e.target.value = oldUrl; // 恢复原值
+          showToast('invalidUrl');
+          return;
+        }
+
+        updateSiteUrl(oldUrl, newUrl);
+      }
+    });
 
   }
 
@@ -245,15 +251,17 @@ document.addEventListener('DOMContentLoaded', () => {
         urlInput.classList.remove('invalid');
         errorMsg.remove();
       }, 3000);
+      showToast('invalidUrl');
       return;
     }
 
-    chrome.storage.local.get(['favorites', 'blocked'], (data) => {
+    chrome.storage.local.get(['favorites', 'blocked', 'highlightColors'], (data) => {
       let favorites = data.favorites || [];
       let blocked = data.blocked || [];
+      let highlightColors = data.highlightColors || {};
       
-      console.log('Current storage state:', { favorites, blocked }); // 当前存储状态
-      
+      console.log('Current storage state:', { favorites, blocked, highlightColors });
+        
       // 检查是否已存在（包括正则匹配）
       const isInFavorites = favorites.some(site => {
         try {
@@ -274,12 +282,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (rating === 'favorite' && isInFavorites) {
-        showToast(`${url} 已在偏好列表中`);
+        showToast('siteAdded', { url });
         return;
       }
       
       if (rating === 'blocked' && isInBlocked) {
-        showToast(`${url} 已在屏蔽列表中`);
+        showToast('siteAdded', { url });
         return;
       }
       
@@ -287,31 +295,55 @@ document.addEventListener('DOMContentLoaded', () => {
       if (rating === 'favorite') {
         blocked = blocked.filter(site => !new RegExp(url).test(site));
         favorites.push(url);
+        // 为新添加的收藏网站设置高亮颜色
+        highlightColors[url] = defaultColor;
       } else {
         favorites = favorites.filter(site => !new RegExp(url).test(site));
         blocked.push(url);
+        // 如果从收藏移到屏蔽，删除对应的高亮颜色
+        delete highlightColors[url];
       }
       
       // 保存更新
       chrome.storage.local.set({ 
         favorites: favorites,
-        blocked: blocked 
+        blocked: blocked,
+        highlightColors: highlightColors
       }, () => {
         loadSites();
         urlInput.value = '';
-        showToast(`已添加 ${url}`);
-        console.log('Updated storage state:', { favorites, blocked }); // 更新后的存储状态
+        showToast('siteAdded', { url });
+        console.log('Updated storage state:', { favorites, blocked, highlightColors });
       });
     });
   }
 
   // 显示Toast消息
-  function showToast(message) {
+  function showToast(messageKey, params = {}) {
+    const message = getMessage(messageKey).replace(
+      /\{(\w+)\}/g, 
+      (match, key) => params[key] || match
+    );
+    
+    // 直接在 popup 中显示提示
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
+
+    // 尝试同时在内容页面显示提示
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'showToast',
+          message: message
+        }).catch(() => {
+          // 如果发送失败，忽略错误（因为已经在popup中显示了提示）
+          console.log('Could not send message to content script, toast shown in popup only');
+        });
+      }
+    });
   }
 
   // 绑定添加按钮事件
@@ -365,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 保存更新
       chrome.storage.local.set({ favorites, blocked }, () => {
         loadSites();
-        showToast(`已更新 ${url} 的好感度`);
+        showToast('ratingUpdated', { url });
       });
     });
   }
@@ -377,9 +409,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 清除所有数据
   clearDataBtn.addEventListener('click', () => {
-    if (confirm('确定要清除所有数据吗？此操作不可恢复。')) {
+    if (confirm(getMessage('clearDataConfirm'))) {
       chrome.storage.local.clear(() => {
-        showToast('所有数据已清除');
+        showToast('dataCleared');
         loadSites();
       });
     }
@@ -403,84 +435,24 @@ document.addEventListener('DOMContentLoaded', () => {
       // 保存更新
       chrome.storage.local.set({ favorites, blocked }, () => {
         loadSites();
-        showToast(`已更新 ${oldUrl} 为 ${newUrl}`);
+        showToast('urlUpdated', { oldUrl, newUrl });
       });
     });
   }
 
-  // 语言切换功能优化
+  // 语言切换功能
   function initializeI18n() {
     const langSelect = document.getElementById('langSelect');
+    const currentLang = getCurrentLanguage();
     
     // 设置当前语言
-    chrome.storage.local.get(['language'], (data) => {
-      const currentLang = data.language || 'en';
-      langSelect.value = currentLang;
-      updateLanguage(currentLang);
-    });
+    langSelect.value = currentLang;
+    updateLanguage(currentLang);
 
     // 语言切换事件
     langSelect.addEventListener('change', (e) => {
       const newLang = e.target.value;
-      chrome.storage.local.set({ language: newLang }, () => {
-        updateLanguage(newLang);
-      });
-    });
-  }
-
-  function updateLanguage(lang) {
-    // 更新所有带有 data-i18n 属性的元素
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      const message = chrome.i18n.getMessage(key);
-      if (message) {
-        el.textContent = message;
-      }
-    });
-
-    // 更新所有带有 data-i18n-placeholder 属性的元素
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-      const key = el.getAttribute('data-i18n-placeholder');
-      const message = chrome.i18n.getMessage(key);
-      if (message) {
-        el.placeholder = message;
-      }
-    });
-  }
-
-  // 颜色设置功能
-  function initializeColorSettings() {
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const closeBtn = settingsPanel.querySelector('.close-btn');
-    const colorPicker = document.getElementById('highlightColorPicker');
-    const colorPreview = document.querySelector('.color-preview');
-
-    // 加载保存的颜色
-    chrome.storage.local.get(['highlightColor'], (data) => {
-      const color = data.highlightColor || '#e6ffe6';
-      colorPicker.value = color;
-      updateColorPreview(color);
-    });
-
-    // 打开/关闭设置面板
-    settingsBtn.addEventListener('click', () => {
-      settingsPanel.classList.add('show');
-    });
-
-    closeBtn.addEventListener('click', () => {
-      settingsPanel.classList.remove('show');
-    });
-
-    // 颜色选择
-    colorPicker.addEventListener('input', (e) => {
-      const color = e.target.value;
-      updateColorPreview(color);
-    });
-
-    colorPicker.addEventListener('change', (e) => {
-      const color = e.target.value;
-      saveHighlightColor(color);
+      updateLanguage(newLang);
     });
   }
 
@@ -496,12 +468,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveHighlightColor(color) {
     chrome.storage.local.set({ highlightColor: color }, () => {
-      // 通知内容脚本更新颜色
+      // 尝试通知内容脚本更新颜色
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          type: 'updateHighlightColor',
-          color: color
-        });
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            type: 'updateHighlightColor',
+            color: color
+          }).catch(() => {
+            console.log('Could not send color update to content script');
+          });
+        }
       });
     });
   }
@@ -530,13 +506,17 @@ document.addEventListener('DOMContentLoaded', () => {
         highlightColors[url] = color;
         
         chrome.storage.local.set({ highlightColors }, () => {
-          // 通知内容脚本更新颜色
+          // 尝试通知内容脚本更新颜色
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            chrome.tabs.sendMessage(tabs[0].id, {
-              type: 'updateHighlightColor',
-              url: url,
-              color: color
-            });
+            if (tabs[0]) {
+              chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'updateHighlightColor',
+                url: url,
+                color: color
+              }).catch(() => {
+                console.log('Could not send color update to content script');
+              });
+            }
           });
         });
       });
@@ -546,5 +526,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // 初始加载
   loadSites();
   initializeI18n();
-  initializeColorSettings();
 }); 
