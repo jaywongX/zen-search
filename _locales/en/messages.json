@@ -1,0 +1,41 @@
+{
+  "extName": {
+    "message": "Search Engine Results Selector"
+  },
+  "searchPlaceholder": {
+    "message": "Search sites..."
+  },
+  "sortByRating": {
+    "message": "Sort by rating"
+  },
+  "sortByUrl": {
+    "message": "Sort by URL"
+  },
+  "addSite": {
+    "message": "Add"
+  },
+  "favorite": {
+    "message": "Favorite"
+  },
+  "blocked": {
+    "message": "Blocked"
+  },
+  "clearData": {
+    "message": "Clear Data"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "urlPlaceholder": {
+    "message": "Enter URL or regex"
+  },
+  "settingsTitle": {
+    "message": "Settings"
+  },
+  "highlightColor": {
+    "message": "Highlight Color"
+  },
+  "previewText": {
+    "message": "This is how highlighted results will look"
+  }
+} 

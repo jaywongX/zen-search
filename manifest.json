@@ -1,0 +1,64 @@
+{
+    "manifest_version": 3,
+    "name": "Search Engine Results Selector",
+    "version": "1.0.0",
+    "description": "自定义过滤和增强搜索引擎结果",
+    "icons": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "background": {
+      "service_worker": "background.js",
+      "type": "module"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "*://*.google.com/*",
+          "*://*.bing.com/*",
+          "*://*.baidu.com/*"
+        ],
+        "css": ["styles.css"],
+        "js": ["content.js"]
+      }
+    ],
+    "permissions": [
+      "storage",
+      "activeTab",
+      "scripting",
+      "contextMenus"
+    ],
+    "host_permissions": [
+      "*://*.google.com/*",
+      "*://*.bing.com/*",
+      "*://*.baidu.com/*"
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png"
+      }
+    },
+    "commands": {
+      "hide-current-result": {
+        "suggested_key": {
+          "default": "Alt+H"
+        },
+        "description": "隐藏当前搜索结果"
+      }
+    },
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+    },
+    "author": "Your Name",
+    "minimum_chrome_version": "88",
+    "web_accessible_resources": [
+      {
+        "resources": ["icons/*"],
+        "matches": ["<all_urls>"]
+      }
+    ],
+    "default_locale": "en"
+  }

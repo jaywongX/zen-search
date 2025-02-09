@@ -1,0 +1,41 @@
+{
+  "extName": {
+    "message": "搜索结果优化器"
+  },
+  "searchPlaceholder": {
+    "message": "搜索网站..."
+  },
+  "sortByRating": {
+    "message": "按好感度排序"
+  },
+  "sortByUrl": {
+    "message": "按网址排序"
+  },
+  "addSite": {
+    "message": "添加"
+  },
+  "favorite": {
+    "message": "偏好"
+  },
+  "blocked": {
+    "message": "屏蔽"
+  },
+  "clearData": {
+    "message": "清除数据"
+  },
+  "settings": {
+    "message": "设置"
+  },
+  "urlPlaceholder": {
+    "message": "输入网址或正则表达式"
+  },
+  "settingsTitle": {
+    "message": "设置"
+  },
+  "highlightColor": {
+    "message": "高亮颜色"
+  },
+  "previewText": {
+    "message": "高亮结果将会是这个样子"
+  }
+} 
