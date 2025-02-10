@@ -17,101 +17,55 @@ document.addEventListener('DOMContentLoaded', () => {
   // 加载网站列表
   function loadSites() {
     console.log('Loading sites from storage...'); // 加载开始
-    chrome.storage.local.get(['favorites', 'blocked'], (data) => {
+    chrome.storage.local.get(['sites'], (data) => {
       console.log('Storage data:', data); // 存储数据
-      const sites = [];
+      const sites = data.sites || [];
       
-      // 合并偏好和屏蔽的网站
-      const favorites = data.favorites || [];
-      const blocked = data.blocked || [];
-      
-      // 添加偏好网站
-      favorites.forEach(url => {
-        sites.push({
-          url,
-          rating: 'favorite',
-          pinned: false
-        });
-      });
-      console.log('Processed favorites:', sites); // 处理后的偏好站点
-      
-      // 添加屏蔽网站
-      blocked.forEach(url => {
-        sites.push({
-          url,
-          rating: 'blocked',
-          pinned: false
-        });
-      });
-      console.log('All processed sites:', sites); // 所有处理后的站点
-
-      // 按置顶状态和URL排序
-      sites.sort((a, b) => {
-        if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
-        return a.url.localeCompare(b.url);
-      });
-
       renderSites(sites);
     });
   }
 
   // 渲染网站列表
-  function renderSites(sites) {
-    chrome.storage.local.get(['pinnedSites', 'highlightColors'], (data) => {
-      const pinnedSites = data.pinnedSites || [];
-      const highlightColors = data.highlightColors || {};
-      
-      const sortedSites = sites.sort((a, b) => {
-        const aIsPinned = pinnedSites.includes(a.url);
-        const bIsPinned = pinnedSites.includes(b.url);
-        if (aIsPinned !== bIsPinned) return bIsPinned ? 1 : -1;
-        return a.url.localeCompare(b.url);
-      });
-
-      siteList.innerHTML = sortedSites.map(site => {
-        const isPinned = pinnedSites.includes(site.url);
-        const color = highlightColors[site.url] || '#e6ffe6';
-        
-        return `
-          <div class="site-item ${isPinned ? 'pinned' : ''}" data-url="${site.url}">
-            <input type="text" class="site-url-input" value="${site.url}">
-            <div class="site-actions">
-              <span class="rating-indicator">
-                ${site.rating === 'favorite' ? '❤️' : '🚫'}
-              </span>
-              ${site.rating === 'favorite' ? `
-                <div class="color-picker-container">
-                  <input type="color" class="color-picker" value="${color}" title="Highlight Color">
-                </div>
-              ` : ''}
-              <button class="action-btn pin-btn" title="Pin">
-                ${isPinned ? '📌' : '📍'}
-              </button>
-              <button class="action-btn delete-btn" title="Delete">-</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+  function renderSites(sites = []) {
+    // 按置顶和URL排序
+    const sortedSites = sites.sort((a, b) => {
+      if (a.top !== b.top) return b.top ? 1 : -1;
+      return a.url.localeCompare(b.url);
     });
 
+    siteList.innerHTML = sortedSites.map(site => `
+      <div class="site-item" data-url="${site.url}">
+        <input type="text" class="site-url-input" value="${site.url}">
+        <div class="site-actions">
+          <button class="block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? 'unblocked' : 'blocked'}">
+            ${site.blocked ? '🚫' : '👁️'}
+          </button>
+          <div class="color-picker-container">
+            <input type="color" class="color-picker" value="${site.color}" title="高亮颜色"
+              ${site.blocked ? 'disabled' : ''}>
+          </div>
+          <button class="pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? 'untop' : 'top'}">
+            ${site.top ? '📌' : '📍'}
+          </button>
+          <button class="delete-btn" title="删除">×</button>
+        </div>
+      </div>
+    `).join('');
+
     siteList.addEventListener('click', (e) => {
-      if (e.target.closest('.pin-btn')) {
-          const siteItem = e.target.closest('.site-item');
-          const url = siteItem.dataset.url;
-          console.log('Pin button clicked:', url);
-          toggleSitePin(url);
-      } else if (e.target.closest('.delete-btn')) {
-          const siteItem = e.target.closest('.site-item');
-          const url = siteItem.dataset.url;
-          console.log('Delete button clicked:', url);
-          deleteSite(url);
-      } else if (e.target.closest('.rating-indicator')) {
-        const siteItem = e.target.closest('.site-item');
-        const url = siteItem.dataset.url;
-        const currentRating = e.target.textContent.includes('❤️') ? 'favorite' : 'blocked';
-        const newRating = currentRating === 'favorite' ? 'blocked' : 'favorite';
-        console.log('Rating clicked:', { url, currentRating, newRating });
-        updateSiteRating(url, newRating);
+      const siteItem = e.target.closest('.site-item');
+      if (!siteItem) return;
+      
+      const url = siteItem.dataset.url;
+      
+      if (e.target.matches('.block-btn')) {
+        const isBlocked = e.target.classList.contains('blocked');
+        updateSite(url, { blocked: !isBlocked });
+      } else if (e.target.matches('.pin-btn')) {
+        const isPinned = e.target.classList.contains('pinned');
+        updateSite(url, { top: !isPinned });
+      } else if (e.target.matches('.delete-btn')) {
+        deleteSite(url);
       }
     });
 
@@ -134,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSiteUrl(oldUrl, newUrl);
       }
     });
-
   }
 
   // 处理网站操作
@@ -152,22 +105,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // 切换网站置顶状态
   function toggleSitePin(url) {
     console.log('Toggling pin for:', url); // 添加日志
-    chrome.storage.local.get(['pinnedSites'], (data) => {
-      const pinnedSites = data.pinnedSites || [];
-      const isPinned = pinnedSites.includes(url);
+    chrome.storage.local.get(['sites'], (data) => {
+      const sites = data.sites || [];
+      const siteIndex = sites.findIndex(site => site.url === url);
       
-      console.log('Current pinned sites:', pinnedSites); // 添加日志
+      console.log('Current sites:', sites); // 添加日志
       
-      let newPinnedSites;
-      if (isPinned) {
-        newPinnedSites = pinnedSites.filter(site => site !== url);
-      } else {
-        newPinnedSites = [...pinnedSites, url];
+      let newSites;
+      if (siteIndex !== -1) {
+        const site = sites[siteIndex];
+        newSites = sites.filter(site => site.url !== url);
+        if (site.top) {
+          newSites.push({ ...site, top: false });
+        } else {
+          newSites.push({ ...site, top: true });
+        }
       }
       
-      console.log('New pinned sites:', newPinnedSites); // 添加日志
+      console.log('New sites:', newSites); // 添加日志
       
-      chrome.storage.local.set({ pinnedSites: newPinnedSites }, () => {
+      chrome.storage.local.set({ sites: newSites }, () => {
         console.log('Storage updated, reloading sites...'); // 添加日志
         loadSites();
       });
@@ -176,12 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 删除网站
   function deleteSite(url) {
-    chrome.storage.local.get(['favorites', 'blocked', 'pinnedSites'], (data) => {
-      const favorites = (data.favorites || []).filter(site => site !== url);
-      const blocked = (data.blocked || []).filter(site => site !== url);
-      const pinnedSites = (data.pinnedSites || []).filter(site => site !== url);
-      
-      chrome.storage.local.set({ favorites, blocked, pinnedSites }, loadSites);
+    chrome.storage.local.get(['sites'], (data) => {
+      const sites = data.sites || [];
+      const newSites = sites.filter(site => site.url !== url);
+      chrome.storage.local.set({ sites: newSites }, () => {
+        loadSites();
+        showToast('siteDeleted', { url });
+      });
     });
   }
 
@@ -226,94 +184,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 添加新网站
-  function addSite() {
-    const url = urlInput.value.trim();
-    const rating = ratingSelect.value;
-    console.log('Adding new site:', { url, rating });
-
-    if (!validateInput(url)) {
-      console.warn('Invalid URL or regex:', url);
-      
-      // 添加错误样式
-      urlInput.classList.add('invalid');
-      
-      // 创建或更新错误消息
-      let errorMsg = document.querySelector('.error-message');
-      if (!errorMsg) {
-        errorMsg = document.createElement('div');
-        errorMsg.className = 'error-message';
-        urlInput.parentNode.insertBefore(errorMsg, urlInput.nextSibling);
-      }
-      errorMsg.textContent = '请输入有效的URL或正则表达式';
-      
-      // 3秒后移除错误提示
-      setTimeout(() => {
-        urlInput.classList.remove('invalid');
-        errorMsg.remove();
-      }, 3000);
-      showToast('invalidUrl');
-      return;
-    }
-
-    chrome.storage.local.get(['favorites', 'blocked', 'highlightColors'], (data) => {
-      let favorites = data.favorites || [];
-      let blocked = data.blocked || [];
-      let highlightColors = data.highlightColors || {};
-      
-      console.log('Current storage state:', { favorites, blocked, highlightColors });
-        
-      // 检查是否已存在（包括正则匹配）
-      const isInFavorites = favorites.some(site => {
-        try {
-          return new RegExp(site).test(url) || new RegExp(url).test(site);
-        } catch (e) {
-          console.error('Regex match error:', e); // 正则匹配错误
-          return site === url;
-        }
-      });
-      
-      const isInBlocked = blocked.some(site => {
-        try {
-          return new RegExp(site).test(url) || new RegExp(url).test(site);
-        } catch (e) {
-          console.error('Regex match error:', e); // 正则匹配错误
-          return site === url;
-        }
-      });
-
-      if (rating === 'favorite' && isInFavorites) {
-        showToast('siteAdded', { url });
+  function addSite(url, blocked = false, color = '#e6ffe6') {
+    chrome.storage.local.get(['sites'], (data) => {
+      const sites = data.sites || [];
+      if (sites.some(site => site.url === url)) {
+        showToast('invalidUrl');
         return;
       }
-      
-      if (rating === 'blocked' && isInBlocked) {
-        showToast('siteAdded', { url });
-        return;
-      }
-      
-      // 从另一个列表中移除（如果存在）
-      if (rating === 'favorite') {
-        blocked = blocked.filter(site => !new RegExp(url).test(site));
-        favorites.push(url);
-        // 为新添加的收藏网站设置高亮颜色
-        highlightColors[url] = defaultColor;
-      } else {
-        favorites = favorites.filter(site => !new RegExp(url).test(site));
-        blocked.push(url);
-        // 如果从收藏移到屏蔽，删除对应的高亮颜色
-        delete highlightColors[url];
-      }
-      
-      // 保存更新
-      chrome.storage.local.set({ 
-        favorites: favorites,
-        blocked: blocked,
-        highlightColors: highlightColors
-      }, () => {
+
+      sites.push({
+        url,
+        blocked,
+        color,
+        top: false
+      });
+
+      chrome.storage.local.set({ sites }, () => {
         loadSites();
-        urlInput.value = '';
         showToast('siteAdded', { url });
-        console.log('Updated storage state:', { favorites, blocked, highlightColors });
+          // 通知内容脚本更新显示
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: 'updateResults'
+            });
+          }
+        });
       });
     });
   }
@@ -347,13 +243,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 绑定添加按钮事件
-  addSiteBtn.addEventListener('click', addSite);
+  addSiteBtn.addEventListener('click', () => {
+    const url = urlInput.value.trim();
+    const blocked = ratingSelect.value === 'blocked';
+    const color = colorSelect.value;
+    if (validateInput(url)) {
+      addSite(url, blocked, color);
+    }
+
+  });
 
   // 绑定回车键添加
   urlInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-      addSite();
+      const url = urlInput.value.trim();
+      const blocked = ratingSelect.value === 'blocked';
+      const color = colorSelect.value;
+      if (validateInput(url)) {
+        addSite(url, blocked, color);
+      }
     }
+
   });
 
   // URL输入框验证
@@ -380,28 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 更新网站好感度
-  function updateSiteRating(url, newRating) {
-    chrome.storage.local.get(['favorites', 'blocked'], (data) => {
-      // 从所有列表中移除
-      const favorites = (data.favorites || []).filter(site => site !== url);
-      const blocked = (data.blocked || []).filter(site => site !== url);
-
-      // 添加到新的列表
-      if (newRating === 'favorite') {
-        favorites.push(url);
-      } else if (newRating === 'blocked') {
-        blocked.push(url);
-      }
-
-      // 保存更新
-      chrome.storage.local.set({ favorites, blocked }, () => {
-        loadSites();
-        showToast('ratingUpdated', { url });
-      });
-    });
-  }
-
   // 绑定排序事件
   sortSelect.addEventListener('change', () => {
     loadSites();
@@ -420,23 +308,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // 添加更新URL的函数
   function updateSiteUrl(oldUrl, newUrl) {
     console.log('Updating URL:', { oldUrl, newUrl });
-    chrome.storage.local.get(['favorites', 'blocked'], (data) => {
-      let favorites = data.favorites || [];
-      let blocked = data.blocked || [];
-
-      // 更新URL
-      if (favorites.includes(oldUrl)) {
-        favorites = favorites.map(url => url === oldUrl ? newUrl : url);
+    chrome.storage.local.get(['sites'], (data) => {
+      const sites = data.sites || [];
+      const siteIndex = sites.findIndex(site => site.url === oldUrl);
+      
+      if (siteIndex !== -1) {
+        const site = sites[siteIndex];
+        const newSites = sites.filter(site => site.url !== oldUrl);
+        if (site.top) {
+          newSites.push({ ...site, url: newUrl });
+        } else {
+          newSites.push({ ...site, url: newUrl });
+        }
+        chrome.storage.local.set({ sites: newSites }, () => {
+          loadSites();
+          showToast('urlUpdated', { oldUrl, newUrl });
+        });
       }
-      if (blocked.includes(oldUrl)) {
-        blocked = blocked.map(url => url === oldUrl ? newUrl : url);
-      }
-
-      // 保存更新
-      chrome.storage.local.set({ favorites, blocked }, () => {
-        loadSites();
-        showToast('urlUpdated', { oldUrl, newUrl });
-      });
     });
   }
 
@@ -492,36 +380,37 @@ document.addEventListener('DOMContentLoaded', () => {
     } : null;
   }
 
-  // 修改网站列表中的颜色选择器事件处理
+  // 颜色选择器事件
   siteList.addEventListener('change', (e) => {
-    const colorPicker = e.target.closest('.color-picker');
-    if (colorPicker) {
-      const siteItem = colorPicker.closest('.site-item');
+    if (e.target.matches('.color-picker')) {
+      const siteItem = e.target.closest('.site-item');
       const url = siteItem.dataset.url;
-      const color = colorPicker.value;
+      updateSite(url, { color: e.target.value });
+    }
+  });
+
+  // 更新站点属性
+  function updateSite(url, updates) {
+    chrome.storage.local.get(['sites'], (data) => {
+      const sites = data.sites || [];
+      const siteIndex = sites.findIndex(site => site.url === url);
       
-      // 保存特定网站的颜色
-      chrome.storage.local.get(['highlightColors'], (data) => {
-        const highlightColors = data.highlightColors || {};
-        highlightColors[url] = color;
-        
-        chrome.storage.local.set({ highlightColors }, () => {
-          // 尝试通知内容脚本更新颜色
+      if (siteIndex !== -1) {
+        sites[siteIndex] = { ...sites[siteIndex], ...updates };
+        chrome.storage.local.set({ sites }, () => {
+          loadSites();
+          // 通知内容脚本更新显示
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
               chrome.tabs.sendMessage(tabs[0].id, {
-                type: 'updateHighlightColor',
-                url: url,
-                color: color
-              }).catch(() => {
-                console.log('Could not send color update to content script');
+                type: 'updateResults'
               });
             }
           });
         });
-      });
-    }
-  });
+      }
+    });
+  }
 
   // 初始加载
   loadSites();

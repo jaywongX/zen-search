@@ -13,6 +13,14 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     // 首次安装时初始化存储数据
     chrome.storage.local.set({
+      sites: [
+        {
+          url: '*.example.com',
+          blocked: false,
+          color: '#e6ffe6',
+          top: false
+        }
+      ],
       // 屏蔽列表，存储要过滤的网站规则
       blocked: [
         '*.example.com',

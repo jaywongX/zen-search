@@ -99,9 +99,7 @@ body {
   align-items: center;
   padding: 8px 12px;
   border-bottom: 1px solid #e0e0e0;
-  height: 40px;
   background: #fff;
-  transition: background-color 0.2s;
 }
 
 .site-item:last-child {
@@ -114,12 +112,10 @@ body {
 
 .site-url-input {
   flex: 1;
-  padding: 6px 10px;
+  margin-right: 8px;
+  padding: 4px 8px;
   border: 1px solid transparent;
   border-radius: 4px;
-  font-size: 14px;
-  color: #2c3e50;
-  background: transparent;
 }
 
 .site-url-input:hover {
@@ -136,21 +132,41 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
 }
 
-.action-btn {
+.block-btn, .pin-btn, .delete-btn {
   padding: 4px 8px;
   border: none;
   background: none;
   border-radius: 4px;
   cursor: pointer;
-  color: #666;
   transition: all 0.2s;
 }
 
-.action-btn:hover {
-  background-color: #f5f5f5;
+.block-btn.blocked {
+  color: #ff4d4f;
+}
+
+.pin-btn.pinned {
+  color: #1890ff;
+}
+
+.delete-btn {
+  color: #ff4d4f;
+}
+
+.color-picker {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-picker:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 添加网站区域 */
@@ -958,4 +974,26 @@ body {
 .sers-toast.show {
   transform: translate(-50%, 0);
   opacity: 1;
+}
+
+/* 确保高亮样式生效 */
+.g:not(.g-blk)[style*="background-color"] {
+  background-color: inherit !important;
+}
+
+/* 确保屏蔽样式生效 */
+.result-blocked {
+  display: none !important;
+}
+
+/* 输入框样式 */
+.url-input {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* 添加输入框示例提示样式 */
+.url-input::placeholder {
+  color: #999;
+  font-style: italic;
 } 

@@ -5,9 +5,9 @@
 const SEARCH_ENGINES = {
   google: {
     host: 'www.google.com',          // 搜索引擎的域名
-    resultSelector: '#search .g',     // 搜索结果条目的CSS选择器
+    resultSelector: '.g:not(.g-blk)', // 修改选择器以更准确地匹配 Google 搜索结果
     containerSelector: '#rso',        // 搜索结果容器的CSS选择器
-    linkSelector: 'a',               // 结果链接的CSS选择器
+    linkSelector: 'a[href]:not(.fl)', // 排除页面底部的链接
     urlSelector: 'cite',             // URL显示元素的CSS选择器
     contentSelector: '.VwiC3b'       // 结果内容的CSS选择器
   },
@@ -303,14 +303,28 @@ function createActionBar(result) {
  */
 function extractUrl(result) {
   const engine = getCurrentEngine();
-  let url = result.querySelector(engine.urlSelector)?.textContent;
+  const urlElement = result.querySelector(engine.urlSelector);
+  const linkElement = result.querySelector(engine.linkSelector);
   
-  // Bing搜索结果特殊处理
-  if (engine.host === 'www.bing.com' && !url) {
-    const link = result.querySelector(engine.linkSelector);
-    url = link?.href;
+  let url = '';
+  if (urlElement && urlElement.textContent) {
+    // 清理 URL 文本，移除特殊字符和多余空格
+    url = urlElement.textContent
+      .trim()
+      .split(/[›»]/) // 分割特殊字符
+      .map(part => part.trim()) // 清理每个部分
+      .filter(Boolean)[0]; // 取第一部分
+  } else if (linkElement && linkElement.href) {
+    url = linkElement.href;
   }
-  
+
+  console.log('Extracted URL:', { 
+    result, 
+    urlElement, 
+    linkElement, 
+    url 
+  });
+
   return url;
 }
 
@@ -324,31 +338,31 @@ function normalizeDomain(url) {
     const domain = new URL(url).hostname;
     return domain.toLowerCase().replace(/^www\./, '');
   } catch (e) {
-    return url.toLowerCase().replace(/^www\./, '');
+    // 如果输入不是有效的URL，尝试直接解析字符串作为域名
+    const domain = url.toLowerCase().replace(/^www\./, '');
+    if (!domain.includes('.')) {
+      throw new Error('Invalid domain');
+    }
+    return domain;
   }
 }
 
 /**
- * 检查域名是否匹配
+ * 检查URL是否匹配规则
+ * @param {string} url - 要检查的URL
  * @param {string} pattern - 匹配模式
- * @param {string} domain - 要检查的域名
  * @returns {boolean} 是否匹配
  */
-function isDomainMatch(pattern, domain) {
+function matchDomain(url, pattern) {
   try {
-    const normalizedPattern = pattern.toLowerCase().replace(/^www\./, '');
-    const normalizedDomain = domain.toLowerCase().replace(/^www\./, '');
-    
-    // 如果是正则表达式
-    if (pattern.includes('*') || pattern.includes('.+') || pattern.includes('.*')) {
-      const regex = new RegExp(normalizedPattern);
-      return regex.test(normalizedDomain);
-    }
-    
-    // 普通域名匹配
-    return normalizedDomain.includes(normalizedPattern) || 
-           normalizedPattern.includes(normalizedDomain);
+    // 从URL中提取域名
+    const domain = new URL(url).hostname;
+    // 创建正则表达式对象
+    const regex = new RegExp(pattern);
+    // 测试域名是否匹配规则
+    return regex.test(domain);
   } catch (e) {
+    console.error('Error matching domain:', e);
     return false;
   }
 }
@@ -459,62 +473,26 @@ function enhanceSearchResult(result) {
 }
 
 /**
- * 检查URL是否匹配规则的函数
- * @param {string} url - 要检查的URL
- * @param {string} pattern - 匹配模式
- * @returns {boolean} 是否匹配
- */
-function matchDomain(url, pattern) {
-  try {
-    // 从URL中提取域名
-    const domain = new URL(url).hostname;
-    // 创建正则表达式对象
-    const regex = new RegExp(pattern);
-    // 测试域名是否匹配规则
-    return regex.test(domain);
-  } catch (e) {
-    console.error('Error matching domain:', e);
-    return false;
-  }
-}
-
-/**
  * 根据好感度处理搜索结果的主函数
  */
 function filterResults() {
-  console.log('Filtering results...'); // 开始过滤
-  chrome.storage.local.get(['favorites', 'blocked', 'highlightColors'], (data) => {
-    console.log('Filter rules:', data); // 过滤规则
-    const results = document.querySelectorAll(getCurrentEngine().resultSelector);
-    const favorites = data.favorites || [];
-    const blocked = data.blocked || [];
-    const highlightColors = data.highlightColors || {};
+  chrome.storage.local.get(['sites'], (data) => {
+    const sites = data.sites || [];
+    const engine = getCurrentEngine();
+    const results = document.querySelectorAll(engine.resultSelector);
 
     results.forEach(result => {
       const url = extractUrl(result);
-      if (!url) {
-        console.warn('No URL found for result:', result);
-        return;
-      }
+      if (!url) return;
 
-      const domain = normalizeDomain(url);
-      
-      // 检查偏好网站
-      favorites.forEach(rule => {
-        if (matchDomain(url, rule)) {
-          // result.classList.add('search-result-highlighted');
-          // 使用网站特定的颜色，如果没有则使用默认颜色
-          const color = highlightColors[rule] || '#e6ffe6';
-          result.style.backgroundColor = color;
-          console.log('Highlighted:', { url, domain, color });
-        }
-      });
-
-      // 检查屏蔽网站
-      blocked.forEach(rule => {
-        if (matchDomain(url, rule)) {
-          result.classList.add('result-blocked');
-          console.log('Blocked:', { url, domain });
+      sites.forEach(site => {
+        if (matchDomain(url, site.url)) {
+          if (site.blocked) {
+            result.style.setProperty('display', 'none', 'important');
+          } else {
+            result.style.removeProperty('display');
+            result.style.setProperty('background-color', site.color, 'important');
+          }
         }
       });
     });
