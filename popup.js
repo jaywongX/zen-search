@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 添加URL编辑事件监听（使用事件委托）
     siteList.addEventListener('blur', (e) => {
-      if (e.target.closest('.site-item') && e.target.classList.contains('site-url-input')) {
+      if (e.target.classList.contains('site-url-input')) {
         const oldUrl = e.target.closest('.site-item').dataset.url;
         const newUrl = e.target.value.trim();
         console.log('URL editing:', { oldUrl, newUrl });
@@ -87,48 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateSiteUrl(oldUrl, newUrl);
       }
-    });
-  }
-
-  // 处理网站操作
-  function handleSiteAction(action, url) {
-    switch (action) {
-      case 'pin':
-        toggleSitePin(url);
-        break;
-      case 'delete':
-        deleteSite(url);
-        break;
-    }
-  }
-
-  // 切换网站置顶状态
-  function toggleSitePin(url) {
-    console.log('Toggling pin for:', url); // 添加日志
-    chrome.storage.local.get(['sites'], (data) => {
-      const sites = data.sites || [];
-      const siteIndex = sites.findIndex(site => site.url === url);
-      
-      console.log('Current sites:', sites); // 添加日志
-      
-      let newSites;
-      if (siteIndex !== -1) {
-        const site = sites[siteIndex];
-        newSites = sites.filter(site => site.url !== url);
-        if (site.top) {
-          newSites.push({ ...site, top: false });
-        } else {
-          newSites.push({ ...site, top: true });
-        }
-      }
-      
-      console.log('New sites:', newSites); // 添加日志
-      
-      chrome.storage.local.set({ sites: newSites }, () => {
-        console.log('Storage updated, reloading sites...'); // 添加日志
-        loadSites();
-      });
-    });
+    }, true);
   }
 
   // 删除网站
@@ -227,19 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
-
-    // 尝试同时在内容页面显示提示
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          type: 'showToast',
-          message: message
-        }).catch(() => {
-          // 如果发送失败，忽略错误（因为已经在popup中显示了提示）
-          console.log('Could not send message to content script, toast shown in popup only');
-        });
-      }
-    });
   }
 
   // 绑定添加按钮事件
@@ -313,16 +259,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const siteIndex = sites.findIndex(site => site.url === oldUrl);
       
       if (siteIndex !== -1) {
-        const site = sites[siteIndex];
-        const newSites = sites.filter(site => site.url !== oldUrl);
-        if (site.top) {
-          newSites.push({ ...site, url: newUrl });
-        } else {
-          newSites.push({ ...site, url: newUrl });
-        }
-        chrome.storage.local.set({ sites: newSites }, () => {
+        sites[siteIndex].url = newUrl;
+        chrome.storage.local.set({ sites }, () => {
           loadSites();
           showToast('urlUpdated', { oldUrl, newUrl });
+          // 通知内容脚本更新显示
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0]) {
+              chrome.tabs.sendMessage(tabs[0].id, {
+                type: 'updateResults'
+              });
+            }
+          });
         });
       }
     });

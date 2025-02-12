@@ -262,41 +262,6 @@ function applyRatingStyle(result, level, styles) {
 }
 
 /**
- * 创建操作栏
- * @param {HTMLElement} result - 搜索结果元素
- * @returns {HTMLElement} 创建的操作栏元素
- */
-function createActionBar(result) {
-  const actions = document.createElement('div');
-  actions.className = 'result-actions';
-  
-  // 添加操作按钮
-  actions.innerHTML = `
-    <button class="action-btn favorite" data-action="favorite">
-      <span>❤️ 偏好</span>
-    </button>
-    <button class="action-btn block" data-action="block">
-      <span>🚫 屏蔽</span>
-    </button>
-  `;
-  
-  // 绑定点击事件
-  actions.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const action = btn.dataset.action;
-      const url = extractUrl(result);
-      console.log('Button clicked:', { action, url }); 
-      if (url) {
-        handleResultAction(url, action);
-      }
-    });
-  });
-  
-  return actions;
-}
-
-/**
  * 从搜索结果中提取URL
  * @param {HTMLElement} result - 搜索结果元素
  * @returns {string|null} 提取的URL
@@ -329,25 +294,6 @@ function extractUrl(result) {
 }
 
 /**
- * 规范化域名
- * @param {string} url - 输入的URL或域名
- * @returns {string} 规范化后的域名
- */
-function normalizeDomain(url) {
-  try {
-    const domain = new URL(url).hostname;
-    return domain.toLowerCase().replace(/^www\./, '');
-  } catch (e) {
-    // 如果输入不是有效的URL，尝试直接解析字符串作为域名
-    const domain = url.toLowerCase().replace(/^www\./, '');
-    if (!domain.includes('.')) {
-      throw new Error('Invalid domain');
-    }
-    return domain;
-  }
-}
-
-/**
  * 检查URL是否匹配规则
  * @param {string} url - 要检查的URL
  * @param {string} pattern - 匹配模式
@@ -368,59 +314,6 @@ function matchDomain(url, pattern) {
 }
 
 /**
- * 处理结果操作
- * @param {string} domain - 域名
- * @param {string} action - 操作类型 ('favorite' 或 'block')
- */
-function handleResultAction(domain, action) {
-  console.log('Handling result action:', { domain, action }); // 处理操作
-  const normalizedDomain = normalizeDomain(domain);
-  
-  // 获取存储的数据
-  chrome.storage.local.get(['favorites', 'blocked'], (data) => {
-    console.log('Current storage:', data); // 当前存储状态
-    const favorites = data.favorites || [];
-    const blocked = data.blocked || [];
-
-    // 检查是否已存在
-    const isInFavorites = favorites.some(d => isDomainMatch(d, normalizedDomain));
-    const isInBlocked = blocked.some(d => isDomainMatch(d, normalizedDomain));
-
-    if (action === 'favorite' && isInFavorites) {
-      showToast(`${normalizedDomain} 已在偏好列表中`);
-      return;
-    }
-    
-    if (action === 'block' && isInBlocked) {
-      showToast(`${normalizedDomain} 已在屏蔽列表中`);
-      return;
-    }
-
-    // 从所有列表中移除相关域名
-    const newFavorites = favorites.filter(d => !isDomainMatch(d, normalizedDomain));
-    const newBlocked = blocked.filter(d => !isDomainMatch(d, normalizedDomain));
-
-    // 添加到新列表
-    if (action === 'favorite') {
-      newFavorites.push(normalizedDomain);
-      showToast(`已将 ${normalizedDomain} 添加到偏好网站`);
-    } else if (action === 'block') {
-      newBlocked.push(normalizedDomain);
-      showToast(`已屏蔽 ${normalizedDomain}`);
-    }
-
-    // 保存更新
-    chrome.storage.local.set({ 
-      favorites: newFavorites, 
-      blocked: newBlocked 
-    }, () => {
-      console.log('Storage updated:', { favorites, blocked }); // 存储更新
-      filterResults();
-    });
-  });
-}
-
-/**
  * 显示Toast提示
  * @param {string} message - 要显示的消息
  */
@@ -436,43 +329,6 @@ function showToast(message) {
 }
 
 /**
- * 更新增强搜索结果函数
- * @param {HTMLElement} result - 搜索结果元素
- */
-function enhanceSearchResult(result) {
-  console.log('Enhancing search result:', result); // 处理的搜索结果
-  result.classList.add('search-result');
-  
-  // 添加操作栏
-  const actionBar = createActionBar(result);
-  
-  // 针对Bing搜索结果的特殊处理
-  if (getCurrentEngine().host === 'www.bing.com') {
-    // 直接添加到结果容器中
-    result.style.position = 'relative';
-    result.appendChild(actionBar);
-  } else {
-    result.appendChild(actionBar);
-  }
-  
-  // 根据URL判断状态
-  const url = extractUrl(result);
-  if (url) {
-    const domain = normalizeDomain(url);
-    chrome.storage.local.get(['favorites', 'blocked'], (data) => {
-      const favorites = data.favorites || [];
-      const blocked = data.blocked || [];
-      
-      if (favorites.some(d => isDomainMatch(d, domain))) {
-        result.classList.add('result-favorite');
-      } else if (blocked.some(d => isDomainMatch(d, domain))) {
-        result.classList.add('result-blocked');
-      }
-    });
-  }
-}
-
-/**
  * 根据好感度处理搜索结果的主函数
  */
 function filterResults() {
@@ -485,6 +341,10 @@ function filterResults() {
       const url = extractUrl(result);
       if (!url) return;
 
+      // 清除之前的高亮和屏蔽效果
+      result.style.removeProperty('display');
+      result.style.removeProperty('background-color');
+
       sites.forEach(site => {
         if (matchDomain(url, site.url)) {
           if (site.blocked) {
@@ -493,6 +353,7 @@ function filterResults() {
             result.style.removeProperty('display');
             result.style.setProperty('background-color', site.color, 'important');
           }
+          return; // 找到匹配的网站后跳出循环
         }
       });
     });
@@ -526,19 +387,115 @@ function handleInfiniteScroll() {
 }
 
 /**
+ * 监听页面变化
+ * 用于处理AJAX加载的新内容和页面切换
+ */
+function observePageChanges() {
+  // 创建 MutationObserver 实例
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      // 检查是否有新的搜索结果添加
+      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        // 延迟执行以确保DOM完全加载
+        setTimeout(filterResults, 100);
+      }
+    });
+  });
+
+  // 获取当前搜索引擎配置
+  const engine = getCurrentEngine();
+  if (!engine) return;
+
+  // 获取要观察的容器
+  const container = document.querySelector(engine.containerSelector);
+  if (!container) return;
+
+  // 配置观察选项
+  const config = {
+    childList: true,      // 观察子节点变化
+    subtree: true,        // 观察所有后代节点
+    attributes: false,    // 不观察属性变化
+    characterData: false  // 不观察文本内容变化
+  };
+
+  // 开始观察
+  observer.observe(container, config);
+
+  // 保存observer实例以便清理
+  window._searchObserver = observer;
+}
+
+/**
+ * 监听 URL 变化
+ */
+function observeUrlChanges() {
+  // 保存当前URL
+  let lastUrl = window.location.href;
+
+  // 监听 popstate 事件（浏览器前进/后退）
+  window.addEventListener('popstate', () => {
+    setTimeout(filterResults, 100);
+  });
+
+  // 监听 pushState 和 replaceState
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+
+  history.pushState = function() {
+    originalPushState.apply(this, arguments);
+    setTimeout(filterResults, 100);
+  };
+
+  history.replaceState = function() {
+    originalReplaceState.apply(this, arguments);
+    setTimeout(filterResults, 100);
+  };
+
+  // 监听 hashchange 事件
+  window.addEventListener('hashchange', () => {
+    setTimeout(filterResults, 100);
+  });
+
+  // 定期检查 URL 变化
+  setInterval(() => {
+    const currentUrl = window.location.href;
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl;
+      console.log('URL changed:', currentUrl);
+      setTimeout(filterResults, 100);
+    }
+  }, 1000); // 每1000ms检查一次
+}
+
+/**
  * 初始化
  */
 function initialize() {
-  console.log('Content script initialized'); // 脚本初始化
-  chrome.storage.local.get(['stats'], (data) => {
-    if (data.stats) {
-      stats = data.stats;
-      updateStatsDisplay();
-    }
-  });
-
+  console.log('Content script initialized');
+  
+  // 初始过滤
+  filterResults();
+  
+  // 设置页面观察器
+  observePageChanges();
+  
+  // 监听 URL 变化
+  observeUrlChanges();
+  
+  // 处理无限滚动
   handleInfiniteScroll();
 }
+
+// 清理函数
+function cleanup() {
+  if (window._searchObserver) {
+    window._searchObserver.disconnect();
+    window._searchObserver = null;
+  }
+}
+
+// 添加清理监听
+window.addEventListener('beforeunload', cleanup);
 
 // 添加消息监听
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
