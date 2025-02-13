@@ -38,11 +38,7 @@ A Chrome extension that helps users customize their search engine results by hig
 - Ecosia
 - Ask
 - AOL
-- WolframAlpha
-- Internet Archive
-- Sogou
-- Haosou (360搜索)
-
+- Naver
 ## Development
 
 ### Project Structure 

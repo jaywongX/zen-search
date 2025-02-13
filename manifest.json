@@ -23,14 +23,10 @@
           "*://*.startpage.com/*/search*",
           "*://*.ecosia.org/search*",
           "*://*.ask.com/web*",
-          "*://*.aol.com/search*",
-          "*://*.onesearch.com/search*",
-          "*://*.wolframalpha.com/input*",
-          "*://*.archive.org/search*",
-          "*://*.sogou.com/web*",
-          "*://*.so.com/s*"
+          "*://*.aol.com/*/search*",
+          "*://*.naver.com/search*"
         ],
-        "css": ["styles.css"],
+        "css": ["content-styles.css"],
         "js": ["content.js"]
       }
     ],
@@ -49,12 +45,8 @@
       "*://*.startpage.com/*/search*",
       "*://*.ecosia.org/search*",
       "*://*.ask.com/web*",
-      "*://*.aol.com/search*",
-      "*://*.onesearch.com/search*",
-      "*://*.wolframalpha.com/input*",
-      "*://*.archive.org/search*",
-      "*://*.sogou.com/web*",
-      "*://*.so.com/s*"
+      "*://*.aol.com/*/search*",
+      "*://*.naver.com/search*"
     ],
     "action": {
       "default_popup": "popup.html",
@@ -78,7 +70,10 @@
     "minimum_chrome_version": "88",
     "web_accessible_resources": [
       {
-        "resources": ["icons/*"],
+        "resources": [
+          "popup-styles.css",
+          "icons/*"
+        ],
         "matches": ["<all_urls>"]
       }
     ],

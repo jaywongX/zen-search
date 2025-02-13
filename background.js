@@ -122,11 +122,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       url.includes('startpage.com/*/search') ||
       url.includes('ecosia.org/search') ||
       url.includes('ask.com/web') ||
-      url.includes('aol.com/search') ||
-      url.includes('wolframalpha.com/input') ||
+      url.includes('aol.com/*/search') ||
       url.includes('archive.org/search') ||
       url.includes('sogou.com/web') ||
-      url.includes('so.com/s')
+      url.includes('so.com/s') ||
+      url.includes('naver.com/search')
     );
     
     if (isSearchPage) {

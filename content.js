@@ -11,6 +11,13 @@ const SEARCH_ENGINES = {
     urlSelector: 'cite',             // URL显示元素的CSS选择器
     contentSelector: '.VwiC3b'       // 结果内容的CSS选择器
   },
+  bing: {
+    host: 'www.bing.com',
+    resultSelector: '#b_results .b_algo',
+    containerSelector: '#b_results',
+    linkSelector: 'h2 a',
+    urlSelector: 'cite'
+  },
   duckduckgo: {
     host: 'duckduckgo.com',
     resultSelector: 'article[data-testid="result"]',
@@ -27,12 +34,13 @@ const SEARCH_ENGINES = {
     urlSelector: '.compTitle cite',
     contentSelector: '.compText'
   },
-  bing: {
-    host: 'www.bing.com',
-    resultSelector: '#b_results .b_algo',
-    containerSelector: '#b_results',
-    linkSelector: 'h2 a',
-    urlSelector: 'cite'
+  yandex: {
+    host: 'yandex.com',
+    resultSelector: '.serp-item',
+    containerSelector: '.content__left',
+    linkSelector: '.OrganicTitle-Link',
+    urlSelector: '.Path-Item',
+    contentSelector: '.OrganicText'
   },
   startpage: {
     host: 'www.startpage.com',
@@ -44,97 +52,35 @@ const SEARCH_ENGINES = {
   },
   ecosia: {
     host: 'www.ecosia.org',
-    // resultSelector: '.mainline__result-wrapper',  // 更新为正确的结
-    // 果容器选择器
-    // containerSelector: '[data-test-id="mainline"]',  // 更新为主容
-    // 器选择器
-    // linkSelector: '.result__title a',  // 更新为标题链接选择器
-    // urlSelector: '.result__source .source__content--domain',  // 
-    // 更新为 URL 显示选择器
-    // contentSelector: '.web-result__description'  // 更新为描述文本
-    // 选择器
     resultSelector: 'article[data-test-id="organic-result"]',  // 更精确的选择器
     containerSelector: '[data-test-id="mainline"]',
     linkSelector: '[data-test-id="result-link"]',
     urlSelector: '.result__source--domain',
     contentSelector: '[data-test-id="result-description"]'
   },
-  yandex: {
-    host: 'yandex.com',
-    resultSelector: '.serp-item',
-    containerSelector: '.content__left',
-    linkSelector: '.OrganicTitle-Link',
-    urlSelector: '.Path-Item',
-    contentSelector: '.OrganicText'
-  },
-  onesearch: {
-    host: 'www.onesearch.com',
-    resultSelector: '.algo',
-    containerSelector: '#web',
-    linkSelector: 'h3.title a',
-    urlSelector: '.compTitle cite',
-    contentSelector: '.compText'
-  },
-  so360: {
-    host: 'www.so.com',
-    resultSelector: '.res-list',
-    containerSelector: '#main',
-    linkSelector: 'h3 a',
-    urlSelector: '.res-linkinfo cite'
-  },
-  sogou: {
-    host: 'www.sogou.com',
-    resultSelector: '.vrwrap',
-    containerSelector: '#main',
-    linkSelector: 'h3 a',
-    urlSelector: 'cite'
-  },
-  naver: {
-    host: 'search.naver.com',
-    resultSelector: '.sh_web_top',
-    containerSelector: '#main_pack',
-    linkSelector: '.title_link',
-    urlSelector: '.url'
-  },
   ask: {
     host: 'www.ask.com',
-    resultSelector: '.PartialSearchResults-item',
-    containerSelector: '.PartialSearchResults-body',
-    linkSelector: '.PartialSearchResults-item-title-link',
-    urlSelector: '.PartialSearchResults-item-url',
-    contentSelector: '.PartialSearchResults-item-abstract'
+    resultSelector: '.result[data-testid="result"]',  // 更新为新的结果容器选择器
+    containerSelector: '.results',  // 搜索结果列表容器
+    linkSelector: '.result-title-link',  // 标题链接
+    urlSelector: '.result-url',  // URL 显示元素
+    contentSelector: '.result-abstract'  // 结果描述
   },
   aol: {
     host: 'search.aol.com',
-    resultSelector: '.algo-sr',
-    containerSelector: '#web',
-    linkSelector: 'h3.title a',
-    urlSelector: '.compTitle cite',
-    contentSelector: '.compText'
+    resultSelector: '.dd.algo.algo-sr',  // 更新为完整的结果容器选择器
+    containerSelector: '#web ul',  // 搜索结果列表的容器
+    linkSelector: '.title a.ac-algo',  // 更精确的标题链接选择器
+    urlSelector: '.compTitle .fz-ms',  // URL 显示元素
+    contentSelector: '.compText p'  // 结果描述文本
   },
-  wolframalpha: {
-    host: 'www.wolframalpha.com',
-    resultSelector: '.pod',
-    containerSelector: '#main',
-    linkSelector: '.pod__title a',
-    urlSelector: '.pod__sourcelink',
-    contentSelector: '.pod__content'
-  },
-  internetarchive: {
-    host: 'archive.org',
-    resultSelector: '.item-ia',
-    containerSelector: '#ikind-search',
-    linkSelector: '.item-title a',
-    urlSelector: '.item-details-metadata',
-    contentSelector: '.item-description'
-  },
-  haosou: {
-    host: 'www.so.com',
-    resultSelector: '.res-list',
-    containerSelector: '#container',
-    linkSelector: '.res-title a',
-    urlSelector: '.res-linkinfo cite',
-    contentSelector: '.res-desc'
+  naver: {
+    host: 'search.naver.com',
+    resultSelector: '.lst_total',  // 单个搜索结果的容器
+    containerSelector: '.api_subject_bx',   // 搜索结果列表的容器
+    linkSelector: '.total_tit .link_tit',   // 标题链接
+    urlSelector: '.source_box .txt',        // URL 显示元素
+    contentSelector: '.api_txt_lines'       // 结果描述文本
   }
 };
 
