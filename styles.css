@@ -1002,4 +1002,92 @@ body {
 .url-input::placeholder {
   color: #999;
   font-style: italic;
-} 
+}
+
+/* Yandex 特定样式修复 */
+.serp-item {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 15px !important;
+}
+
+/* 搜索结果容器样式 */
+.content__left {
+  width: auto !important;
+  min-width: 600px !important;
+  max-width: 800px !important;
+  margin-right: 20px !important;
+}
+
+.content__right {
+  width: 300px !important;
+}
+
+/* 高亮和屏蔽样式 */
+.result-highlighted {
+  background-color: var(--highlight-color, #e6ffe6) !important;
+  border-radius: 4px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.result-blocked {
+  display: none !important;
+}
+
+/* 确保链接样式正确 */
+.OrganicTitle-Link {
+  display: inline-block !important;
+  width: auto !important;
+  max-width: 100% !important;
+}
+
+/* 防止内容溢出 */
+.organic {
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+}
+
+/* Ecosia 布局修复 - 新版本 */
+/* 重置主容器的最大宽度限制 */
+body[data-testid="serp"] {
+  max-width: none !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* 修复主网格布局 */
+.layout__content {
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  gap: 32px !important;
+  padding: 0 16px !important;
+}
+
+/* 确保搜索结果区域正确显示 */
+[data-test-id="mainline"] {
+  width: 100% !important;
+  max-width: 800px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* 搜索结果项样式 */
+.mainline__result-wrapper {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-bottom: 16px !important;
+}
+
+/* 高亮样式 */
+.result-highlighted {
+  background-color: var(--highlight-color, #e6ffe6) !important;
+  border-radius: 4px !important;
+  margin: inherit !important;
+  width: auto !important;
+}

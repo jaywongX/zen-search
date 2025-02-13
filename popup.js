@@ -1,7 +1,6 @@
 import { updateLanguage, getCurrentLanguage, getMessage } from './i18n.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Popup initialized'); // 初始化日志
 
   const siteList = document.getElementById('siteList');
   const searchInput = document.getElementById('searchInput');
@@ -16,9 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 加载网站列表
   function loadSites() {
-    console.log('Loading sites from storage...'); // 加载开始
     chrome.storage.local.get(['sites'], (data) => {
-      console.log('Storage data:', data); // 存储数据
       const sites = data.sites || [];
       
       renderSites(sites);
@@ -74,12 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.classList.contains('site-url-input')) {
         const oldUrl = e.target.closest('.site-item').dataset.url;
         const newUrl = e.target.value.trim();
-        console.log('URL editing:', { oldUrl, newUrl });
 
         if (oldUrl === newUrl) return;
 
         if (!validateInput(newUrl)) {
-          console.warn('Invalid URL:', newUrl);
           e.target.value = oldUrl; // 恢复原值
           showToast('invalidUrl');
           return;
@@ -98,6 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ sites: newSites }, () => {
         loadSites();
         showToast('siteDeleted', { url });
+        
+        // 只更新当前活动标签页
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: 'updateResults'
+            });
+          }
+        });
       });
     });
   }
@@ -124,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const regexStr = input.replace(/\*/g, '.*')
                              .replace(/\./g, '\\.');
         new RegExp(regexStr);
-        console.log('Validated regex:', regexStr);
         return true;
       }
       
@@ -137,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return /^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$/.test(input);
       }
     } catch (e) {
-      console.error('Validation error:', e);
       return false;
     }
   }
@@ -253,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 添加更新URL的函数
   function updateSiteUrl(oldUrl, newUrl) {
-    console.log('Updating URL:', { oldUrl, newUrl });
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const siteIndex = sites.findIndex(site => site.url === oldUrl);
@@ -300,22 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const rgb = hexToRgb(color);
     const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
     preview.style.color = brightness > 128 ? '#000' : '#fff';
-  }
-
-  function saveHighlightColor(color) {
-    chrome.storage.local.set({ highlightColor: color }, () => {
-      // 尝试通知内容脚本更新颜色
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]) {
-          chrome.tabs.sendMessage(tabs[0].id, {
-            type: 'updateHighlightColor',
-            color: color
-          }).catch(() => {
-            console.log('Could not send color update to content script');
-          });
-        }
-      });
-    });
   }
 
   // 辅助函数：将十六进制颜色转换为RGB

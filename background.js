@@ -103,11 +103,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       title: translations[lang].contextMenuBlock
     });
   }
-
-  // 监听内容脚本加载
-  if (message.type === 'contentScriptLoaded') {
-    console.log('Content script loaded in tab:', sender.tab.id);
-  }
 });
 
 /**
@@ -121,10 +116,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const isSearchPage = url && (
       url.includes('google.com/search') ||
       url.includes('bing.com/search') ||
-      url.includes('baidu.com/s') ||
       url.includes('duckduckgo.com') ||
       url.includes('yahoo.com/search') ||
-      url.includes('yandex.com/search')
+      url.includes('yandex.com/search') ||
+      url.includes('startpage.com/*/search') ||
+      url.includes('ecosia.org/search') ||
+      url.includes('ask.com/web') ||
+      url.includes('aol.com/search') ||
+      url.includes('wolframalpha.com/input') ||
+      url.includes('archive.org/search') ||
+      url.includes('sogou.com/web') ||
+      url.includes('so.com/s')
     );
     
     if (isSearchPage) {
@@ -152,15 +154,6 @@ chrome.commands.onCommand.addListener((command) => {
       }
     });
   }
-});
-
-/**
- * 监听卸载事件
- * 清理扩展数据和设置
- */
-chrome.runtime.onSuspend.addListener(() => {
-  // 执行必要的清理工作
-  console.log('Extension is being unloaded');
 });
 
 // 创建右键菜单

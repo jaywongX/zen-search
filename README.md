@@ -31,11 +31,17 @@ A Chrome extension that helps users customize their search engine results by hig
 
 - Google
 - Bing
-- Baidu
 - DuckDuckGo
 - Yahoo
 - Yandex
-- And more...
+- Startpage
+- Ecosia
+- Ask
+- AOL
+- WolframAlpha
+- Internet Archive
+- Sogou
+- Haosou (360搜索)
 
 ## Development
 

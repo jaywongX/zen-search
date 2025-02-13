@@ -15,12 +15,20 @@
     "content_scripts": [
       {
         "matches": [
-          "*://*.google.com/*",
-          "*://*.bing.com/*",
-          "*://*.baidu.com/*",
-          "*://*.duckduckgo.com/*",
-          "*://*.yahoo.com/*",
-          "*://*.yandex.com/*"
+          "*://*.google.com/search*", 
+          "*://*.bing.com/search*",
+          "*://*.duckduckgo.com/search*",
+          "*://*.yahoo.com/search*",
+          "*://*.yandex.com/search*",
+          "*://*.startpage.com/*/search*",
+          "*://*.ecosia.org/search*",
+          "*://*.ask.com/web*",
+          "*://*.aol.com/search*",
+          "*://*.onesearch.com/search*",
+          "*://*.wolframalpha.com/input*",
+          "*://*.archive.org/search*",
+          "*://*.sogou.com/web*",
+          "*://*.so.com/s*"
         ],
         "css": ["styles.css"],
         "js": ["content.js"]
@@ -33,9 +41,20 @@
       "contextMenus"
     ],
     "host_permissions": [
-      "*://*.google.com/*",
-      "*://*.bing.com/*",
-      "*://*.baidu.com/*"
+      "*://*.google.com/search*",
+      "*://*.bing.com/search*",
+      "*://*.duckduckgo.com/search*",
+      "*://*.yahoo.com/search*",
+      "*://*.yandex.com/search*",
+      "*://*.startpage.com/*/search*",
+      "*://*.ecosia.org/search*",
+      "*://*.ask.com/web*",
+      "*://*.aol.com/search*",
+      "*://*.onesearch.com/search*",
+      "*://*.wolframalpha.com/input*",
+      "*://*.archive.org/search*",
+      "*://*.sogou.com/web*",
+      "*://*.so.com/s*"
     ],
     "action": {
       "default_popup": "popup.html",
