@@ -3,16 +3,6 @@
   /* 高亮背景色，使用CSS变量支持自定义颜色 */
   background-color: var(--highlight-color, #e6ffe6) !important;
   border-radius: 4px !important;
-  position: relative;
-  padding-left: 15px;
-}
-
-/* 高亮结果的标记样式 */
-.result-highlighted::before {
-  content: "★";
-  position: absolute;
-  left: 0;
-  color: var(--highlight-color, #4CAF50);
 }
 
 /* 屏蔽结果的样式 */

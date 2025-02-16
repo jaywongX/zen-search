@@ -106,39 +106,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /**
- * 监听标签页更新事件
- * 用于在页面加载完成后执行必要的操作
- */
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    // 检查是否是搜索引擎页面
-    const url = tab.url;
-    const isSearchPage = url && (
-      url.includes('google.com/search') ||
-      url.includes('bing.com/search') ||
-      url.includes('duckduckgo.com') ||
-      url.includes('yahoo.com/search') ||
-      url.includes('yandex.com/search') ||
-      url.includes('startpage.com/*/search') ||
-      url.includes('ecosia.org/search') ||
-      url.includes('ask.com/web') ||
-      url.includes('aol.com/*/search') ||
-      url.includes('archive.org/search') ||
-      url.includes('sogou.com/web') ||
-      url.includes('so.com/s') ||
-      url.includes('naver.com/search')
-    );
-    
-    if (isSearchPage) {
-      // 向内容脚本发送刷新消息
-      chrome.tabs.sendMessage(tabId, {
-        type: 'refreshFilters'
-      });
-    }
-  }
-});
-
-/**
  * 监听快捷键命令
  * 处理用户的键盘快捷操作
  */

@@ -1,4 +1,4 @@
-import { updateLanguage, getCurrentLanguage, getMessage } from './i18n.js';
+import { updateLanguage, getCurrentLanguage, getMessage, translations } from './i18n.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -34,17 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="site-item" data-url="${site.url}">
         <input type="text" class="site-url-input" value="${site.url}">
         <div class="site-actions">
-          <button class="block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? 'unblocked' : 'blocked'}">
+          <button class="block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? translations[getCurrentLanguage()].unblocked : translations[getCurrentLanguage()].blocked}">
             ${site.blocked ? '🚫' : '👁️'}
           </button>
           <div class="color-picker-container">
-            <input type="color" class="color-picker" value="${site.color}" title="高亮颜色"
+            <input type="color" class="color-picker" value="${site.color}" title="${translations[getCurrentLanguage()].highlightColor}"
               ${site.blocked ? 'disabled' : ''}>
           </div>
-          <button class="pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? 'untop' : 'top'}">
+          <button class="pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[getCurrentLanguage()].untop : translations[getCurrentLanguage()].top}">
             ${site.top ? '📌' : '📍'}
           </button>
-          <button class="delete-btn" title="删除">×</button>
+          <button class="delete-btn" title="${translations[getCurrentLanguage()].delete}">-</button>
         </div>
       </div>
     `).join('');
@@ -222,25 +222,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 排序网站列表
   function sortSites(sites, sortBy) {
-    switch (sortBy) {
-      case 'rating':
-        return sites.sort((a, b) => {
-          // 首先按好感度排序（偏好 > 中立 > 屏蔽）
-          const ratingOrder = { favorite: 2, neutral: 1, blocked: 0 };
-          const ratingDiff = ratingOrder[b.rating] - ratingOrder[a.rating];
-          // 如果好感度相同，则按URL排序
-          return ratingDiff !== 0 ? ratingDiff : a.url.localeCompare(b.url);
-        });
-      case 'url':
-        return sites.sort((a, b) => a.url.localeCompare(b.url));
-      default:
-        return sites;
-    }
+    return [...sites].sort((a, b) => {
+      switch (sortBy) {
+        case 'blocked':
+          // 屏蔽的排在前面
+          return (b.blocked ? 1 : 0) - (a.blocked ? 1 : 0);
+        
+        case 'color':
+          // 有颜色的排在前面，相同情况下按颜色值排序
+          if (a.color && !b.color) return -1;
+          if (!a.color && b.color) return 1;
+          return (a.color || '').localeCompare(b.color || '');
+        
+        case 'url':
+          // 按 URL 字母顺序排序
+          return a.url.localeCompare(b.url);
+        
+        default:
+          return 0;
+      }
+    });
   }
 
-  // 绑定排序事件
-  sortSelect.addEventListener('change', () => {
-    loadSites();
+  // 更新排序按钮状态
+  function updateSortButtons(activeSortBy) {
+    document.querySelectorAll('.sort-button').forEach(button => {
+      button.classList.toggle('active', button.dataset.sort === activeSortBy);
+    });
+  }
+
+  // 添加排序按钮点击事件
+  document.querySelectorAll('.sort-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const sortBy = button.dataset.sort;
+      updateSortButtons(sortBy);
+      // 获取并排序网站列表
+      chrome.storage.local.get(['sites'], ({ sites = [] }) => {
+        const sortedSites = sortSites(sites, sortBy);
+        renderSites(sortedSites);
+      });
+    });
   });
 
   // 清除所有数据

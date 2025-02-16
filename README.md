@@ -1,15 +1,34 @@
 # Search Engine Results Selector
 
-A Chrome extension that helps users customize their search engine results by highlighting favorite sites and hiding unwanted ones.
+A browser extension to customize and enhance search engine results.
+
+## Supported Search Engines
+
+- Google
+- Bing
+- DuckDuckGo
+- Yahoo
+- Yahoo Japan
+- Yandex (yandex.com & yandex.ru)
+- Startpage
+- Ecosia
+- Ask
+- AOL
+- Naver
+- Brave Search
+- OneSearch
+- SearX (multiple instances)
+- Qwant
 
 ## Features
 
-- 🎯 Filter search results from major search engines (Google, Bing, Baidu, etc.)
-- ⭐ Highlight favorite websites with customizable colors
-- 🚫 Hide unwanted results
-- 📌 Pin important sites for quick access
-- 🌐 Support for multiple languages (English, Chinese)
-- 🎨 Personalized highlight colors for each favorite site
+- Block unwanted domains from search results
+- Highlight favorite sites with custom colors
+- Support regex patterns for domain matching
+- Keyboard shortcuts for quick actions
+- Multi-language support (English & Chinese)
+- Works with infinite scroll
+- Real-time updates
 
 ## Installation
 
@@ -27,18 +46,6 @@ A Chrome extension that helps users customize their search engine results by hig
    - Customize highlight colors for favorite sites
 3. Browse search results with your preferences applied
 
-## Supported Search Engines
-
-- Google
-- Bing
-- DuckDuckGo
-- Yahoo
-- Yandex
-- Startpage
-- Ecosia
-- Ask
-- AOL
-- Naver
 ## Development
 
 ### Project Structure 

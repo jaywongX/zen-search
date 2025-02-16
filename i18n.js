@@ -8,6 +8,7 @@ const translations = {
     addSite: "Add",
     favorite: "Favorite",
     blocked: "Blocked",
+    unblocked: "Unblocked",
     clearData: "Clear Data",
     settings: "Settings",
     urlPlaceholder: "Enter domain, support regex",
@@ -17,7 +18,6 @@ const translations = {
     previewText: "This is how highlighted results will look",
     contextMenuFavorite: "Add to Favorites",
     contextMenuBlock: "Block this Site",
-
     addedToFavorites: "Added {domain} to favorites",
     siteBlocked: "Blocked {domain}",
     clearDataConfirm: "Are you sure you want to clear all data? This cannot be undone.",
@@ -25,7 +25,10 @@ const translations = {
     urlUpdated: "Updated {oldUrl} to {newUrl}",
     ratingUpdated: "Updated rating for {url}",
     invalidUrl: "Please enter a valid URL or regex pattern",
-    siteAdded: "Added {url}"
+    siteAdded: "Added {url}",
+    top: "Top",
+    untop: "Untop",
+    delete: "Delete"
   },
   zh_CN: {
     extName: "搜索引擎结果优化器",
@@ -51,7 +54,10 @@ const translations = {
     urlUpdated: "已更新 {oldUrl} 为 {newUrl}",
     ratingUpdated: "已更新 {url} 的好感度",
     invalidUrl: "请输入有效的URL或正则表达式",
-    siteAdded: "已添加 {url}"
+    siteAdded: "已添加 {url}",
+    top: "置顶",
+    untop: "取消置顶",
+    delete: "删除"
   }
 };
 

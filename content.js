@@ -4,12 +4,11 @@
  */
 const SEARCH_ENGINES = {
   google: {
-    host: 'www.google.com',          // 搜索引擎的域名
-    resultSelector: '.g:not(.g-blk)', // 修改选择器以更准确地匹配 Google 搜索结果
-    containerSelector: '#rso',        // 搜索结果容器的CSS选择器
-    linkSelector: 'a[href]:not(.fl)', // 排除页面底部的链接
-    urlSelector: 'cite',             // URL显示元素的CSS选择器
-    contentSelector: '.VwiC3b'       // 结果内容的CSS选择器
+    host: 'google',
+    resultSelector: '.g:not(.g-blk)',
+    containerSelector: '#rso',
+    linkSelector: 'a[href]:not(.fl)',
+    urlSelector: 'cite'
   },
   bing: {
     host: 'www.bing.com',
@@ -23,120 +22,100 @@ const SEARCH_ENGINES = {
     resultSelector: 'article[data-testid="result"]',
     containerSelector: '.react-results--main',
     linkSelector: 'h2 a[data-testid="result-title-a"]',
-    urlSelector: 'a[data-testid="result-extras-url-link"]',
-    contentSelector: 'div[data-result="snippet"]'
+    urlSelector: 'a[data-testid="result-extras-url-link"]'
   },
   yahoo: {
     host: 'search.yahoo.com',
     resultSelector: '.algo',
     containerSelector: '#web',
     linkSelector: 'h3.title a',
-    urlSelector: '.compTitle cite',
-    contentSelector: '.compText'
+    urlSelector: '.compTitle cite'
+  },
+  yahooJp: {
+    host: 'search.yahoo.co.jp',
+    resultSelector: '.sw-CardBase .Algo',
+    containerSelector: '.Contents__innerGroupBody',
+    linkSelector: '.sw-Card__titleInner',
+    urlSelector: '.sw-Breadcrumbs__item'
   },
   yandex: {
     host: 'yandex.com',
     resultSelector: '.serp-item',
     containerSelector: '.content__left',
     linkSelector: '.OrganicTitle-Link',
-    urlSelector: '.Path-Item',
-    contentSelector: '.OrganicText'
+    urlSelector: '.Path-Item'
+  },
+  yandexRu: {
+    host: 'yandex.ru',
+    resultSelector: '.Organic.organic',
+    containerSelector: '.content__left',
+    linkSelector: '.OrganicTitle-LinkText',
+    urlSelector: '.Path-Item'
   },
   startpage: {
     host: 'www.startpage.com',
-    resultSelector: 'div[class^="result css-"]',  // 匹配以 'result' 开头的类名
-    containerSelector: 'div[class*="results css-"]',  // 匹配包含 'results' 的类名
-    linkSelector: 'a[data-testid="gl-title-link"]',  // 使用 data-testid 属性
-    urlSelector: 'a[class*="wgl-display-url"]',  // 匹配包含 'wgl-display-url' 的类名
-    contentSelector: 'p[class*="description"]'  // 匹配包含 'description' 的类名
+    resultSelector: 'div[class^="result css-"]',
+    containerSelector: 'div[class*="results css-"]',
+    linkSelector: 'a[data-testid="gl-title-link"]',
+    urlSelector: 'a[class*="wgl-display-url"]'
   },
   ecosia: {
     host: 'www.ecosia.org',
-    resultSelector: 'article[data-test-id="organic-result"]',  // 更精确的选择器
+    resultSelector: 'article[data-test-id="organic-result"]',
     containerSelector: '[data-test-id="mainline"]',
     linkSelector: '[data-test-id="result-link"]',
-    urlSelector: '.result__source--domain',
-    contentSelector: '[data-test-id="result-description"]'
+    urlSelector: '.result__source--domain'
   },
   ask: {
     host: 'www.ask.com',
-    resultSelector: '.result[data-testid="result"]',  // 更新为新的结果容器选择器
-    containerSelector: '.results',  // 搜索结果列表容器
-    linkSelector: '.result-title-link',  // 标题链接
-    urlSelector: '.result-url',  // URL 显示元素
-    contentSelector: '.result-abstract'  // 结果描述
+    resultSelector: '.result[data-testid="result"]',
+    containerSelector: '.results',
+    linkSelector: '.result-title-link',
+    urlSelector: '.result-url'
   },
   aol: {
     host: 'search.aol.com',
-    resultSelector: '.dd.algo.algo-sr',  // 更新为完整的结果容器选择器
-    containerSelector: '#web ul',  // 搜索结果列表的容器
-    linkSelector: '.title a.ac-algo',  // 更精确的标题链接选择器
-    urlSelector: '.compTitle .fz-ms',  // URL 显示元素
-    contentSelector: '.compText p'  // 结果描述文本
+    resultSelector: '.dd.algo.algo-sr',
+    containerSelector: '#web ul',
+    linkSelector: '.title a.ac-algo',
+    urlSelector: '.compTitle .fz-ms'
   },
   naver: {
     host: 'search.naver.com',
-    resultSelector: '.lst_total',  // 单个搜索结果的容器
-    containerSelector: '.api_subject_bx',   // 搜索结果列表的容器
-    linkSelector: '.total_tit .link_tit',   // 标题链接
-    urlSelector: '.source_box .txt',        // URL 显示元素
-    contentSelector: '.api_txt_lines'       // 结果描述文本
+    resultSelector: '.lst_total',
+    containerSelector: '.api_subject_bx',
+    linkSelector: '.total_tit .link_tit',
+    urlSelector: '.source_box .txt'
+  },
+  brave: {
+    host: 'search.brave.com',
+    resultSelector: '.snippet',
+    containerSelector: '[data-type="web"]',  // 网页搜索结果容器
+    linkSelector: '.heading-serpresult',  // 标题链接
+    urlSelector: '.netloc'  // URL 显示元素
+  },
+  onesearch: {
+    host: 'www.onesearch.com',
+    resultSelector: '.result-item',
+    containerSelector: '#web-results',
+    linkSelector: '.result-title a',
+    urlSelector: '.result-url'
+  },
+  searx: {
+    host: 'searx',  // 匹配所有 SearX 实例
+    resultSelector: '.result.result-default',  // 更精确的结果选择器
+    containerSelector: '#main_results',
+    linkSelector: 'h3 a',  // 更新标题链接选择器
+    urlSelector: '.url_i1'  // 更新 URL 选择器为实际显示 URL 的元素
+  },
+  qwant: {
+    host: 'www.qwant.com',
+    resultSelector: '[data-testid="webResult"]',
+    containerSelector: '[data-testid="SERVariant-A"]',
+    linkSelector: '[data-testid="webResult"] a[href]',
+    urlSelector: '[domain]'  
   }
 };
-
-/**
- * 统计数据对象
- * 用于跟踪插件的使用效果和用户行为
- */
-let stats = {
-  filteredCount: 0,          // 被过滤的结果数量
-  highlightedCount: 0,       // 被高亮的结果数量
-  startTime: Date.now(),     // 插件启动时间
-  estimatedTimeSaved: 0      // 估计节省的时间(秒)
-};
-
-/**
- * 更新统计数据
- * @param {string} type - 统计类型 ('filteredCount' 或 'highlightedCount')
- */
-function updateStats(type) {
-  stats[type]++;
-  // 假设每个过滤的结果节省12秒
-  stats.estimatedTimeSaved = stats.filteredCount * 12;
-
-  // 保存到存储并更新显示
-  chrome.storage.local.set({ stats });
-  updateStatsDisplay();
-}
-
-/**
- * 创建统计显示面板
- * @returns {HTMLElement} 创建的统计面板元素
- */
-function createStatsPanel() {
-  const panel = document.createElement('div');
-  panel.className = 'stats-panel';
-  panel.innerHTML = `
-    <div class="stats-content">
-      <div class="stats-item">已过滤: <span id="filtered-count">0</span></div>
-      <div class="stats-item">已高亮: <span id="highlighted-count">0</span></div>
-      <div class="stats-item">预计节省: <span id="time-saved">0分钟</span></div>
-    </div>
-  `;
-  document.body.appendChild(panel);
-  return panel;
-}
-
-/**
- * 更新统计显示
- */
-function updateStatsDisplay() {
-  const panel = document.querySelector('.stats-panel') || createStatsPanel();
-  panel.querySelector('#filtered-count').textContent = stats.filteredCount;
-  panel.querySelector('#highlighted-count').textContent = stats.highlightedCount;
-  panel.querySelector('#time-saved').textContent =
-    `${Math.round(stats.estimatedTimeSaved / 60)}分钟`;
-}
 
 /**
  * 应用自定义样式
@@ -215,7 +194,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (resultElement) {
       resultElement.style.display = 'none';
-      updateStats('filteredCount');
     }
   }
 });
@@ -320,12 +298,12 @@ async function extractUrl(result) {
     url = linkElement.href;
   }
 
-  console.log('Extracted URL:', {
-    result,
-    urlElement,
-    linkElement,
-    url
-  });
+  // console.log('Extracted URL:', {
+  //   result,
+  //   urlElement,
+  //   linkElement,
+  //   url
+  // });
 
   return url;
 }
@@ -426,42 +404,44 @@ function handleInfiniteScroll() {
 }
 
 /**
- * 监听页面变化
- * 用于处理AJAX加载的新内容和页面切换
+ * 观察页面变化
  */
 function observePageChanges() {
-  // 创建 MutationObserver 实例
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      // 检查是否有新的搜索结果添加
-      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        // 延迟执行以确保DOM完全加载
-        setTimeout(filterResults, 100);
-      }
-    });
-  });
-
-  // 获取当前搜索引擎配置
   const engine = getCurrentEngine();
   if (!engine) return;
 
-  // 获取要观察的容器
-  const container = document.querySelector(engine.containerSelector);
-  if (!container) return;
+  // 检查是否有结果
+  function checkResults() {
+    const results = document.querySelectorAll(engine.resultSelector);
+    if (results.length > 0) {
+      filterResults();
+    }
+  }
+
+  // 创建观察器实例
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        checkResults();
+        break;
+      }
+    }
+  });
 
   // 配置观察选项
   const config = {
-    childList: true,      // 观察子节点变化
-    subtree: true,        // 观察所有后代节点
-    attributes: false,    // 不观察属性变化
-    characterData: false  // 不观察文本内容变化
+    childList: true,  // 观察子节点变化
+    subtree: true     // 观察所有后代节点
   };
 
   // 开始观察
-  observer.observe(container, config);
+  observer.observe(document.body, config);
 
-  // 保存observer实例以便清理
+  // 保存观察器实例以便清理
   window._searchObserver = observer;
+
+  // 初始检查
+  checkResults();
 }
 
 /**
@@ -509,11 +489,7 @@ function observeUrlChanges() {
  * 初始化
  */
 function initialize() {
-
-  // 初始过滤
-  filterResults();
-
-  // 设置页面观察器
+  // 初始化页面观察器
   observePageChanges();
 
   // 监听 URL 变化
@@ -559,8 +535,5 @@ function updateSiteHighlight(url, color) {
     }
   });
 }
-
-// 添加初始化确认
-chrome.runtime.sendMessage({ type: 'contentScriptLoaded' });
 
 initialize(); 
