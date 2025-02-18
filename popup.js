@@ -17,13 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSites() {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
-
-      renderSites(sites);
+      renderSites(sites).catch(console.error);
     });
   }
 
   // 渲染网站列表
-  function renderSites(sites = []) {
+  async function renderSites(sites = []) {
+    // 获取当前语言
+    const currentLang = await getCurrentLanguage();
+
     // 按置顶和URL排序
     const sortedSites = sites.sort((a, b) => {
       if (a.top !== b.top) return b.top ? 1 : -1;
@@ -34,17 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="site-item" data-url="${site.url}">
         <input type="text" class="site-url-input" value="${site.url}">
         <div class="site-actions">
-          <button class="block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? translations[getCurrentLanguage()].unblocked : translations[getCurrentLanguage()].blocked}">
+          <button class="block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? translations[currentLang].unblocked : translations[currentLang].blocked}">
             ${site.blocked ? '🚫' : '👁️'}
           </button>
           <div class="color-picker-container">
-            <input type="color" class="color-picker" value="${site.color}" title="${translations[getCurrentLanguage()].highlightColor}"
+            <input type="color" class="color-picker" value="${site.color}" title="${translations[currentLang].highlightColor}"
               ${site.blocked ? 'disabled' : ''}>
           </div>
-          <button class="pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[getCurrentLanguage()].untop : translations[getCurrentLanguage()].top}">
+          <button class="pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[currentLang].untop : translations[currentLang].top}">
             ${site.top ? '📌' : '📍'}
           </button>
-          <button class="delete-btn" title="${translations[getCurrentLanguage()].delete}">-</button>
+          <button class="delete-btn" title="${translations[currentLang].delete}">-</button>
         </div>
       </div>
     `).join('');
@@ -118,27 +120,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 验证URL或正则表达式
-  function validateInput(input) {
+  function validateInput(input, isEdit = false) {
     if (!input) return false;
 
     try {
-      // 处理正则表达式字符串
-      if (input.includes('*')) {
-        // 将 * 转换为正则表达式
-        const regexStr = input.replace(/\*/g, '.*')
-          .replace(/\./g, '\\.');
-        new RegExp(regexStr);
+      // 检查是否是标准通配符格式
+      if (input.match(/^\*:\/\/([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+\/\*$/)) {
         return true;
       }
 
-      // 尝试作为URL验证
-      try {
-        new URL(input.startsWith('http') ? input : `http://${input}`);
+      // 如果不是标准格式，尝试转换
+      if (input.match(/^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/)) {
         return true;
-      } catch {
-        // 如果不是有效URL，尝试作为域名验证
-        return /^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$/.test(input);
       }
+
+      return false;
     } catch (e) {
       return false;
     }
@@ -146,15 +142,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 添加新网站
   function addSite(url, blocked = false, color = '#e6ffe6') {
+    // 转换为标准通配符格式
+    const domain = url.replace(/^\*:\/\//, '').replace(/\/\*$/, '');
+    const parts = domain.split('.');
+    const mainDomain = parts.length > 2
+      ? parts.slice(-2).join('.') // 例如 apps.apple.com -> apple.com
+      : domain;                   // 例如 example.com -> example.com
+
+    const standardUrl = `*://*.${mainDomain}/*`;
+
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
-      if (sites.some(site => site.url === url)) {
+      if (sites.some(site => site.url === standardUrl)) {
         showToast('invalidUrl');
         return;
       }
 
       sites.push({
-        url,
+        url: standardUrl,
         blocked,
         color,
         top: false
@@ -176,8 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 显示Toast消息
-  function showToast(messageKey, params = {}) {
-    const message = getMessage(messageKey).replace(
+  async function showToast(messageKey, params = {}) {
+    const currentLang = await getCurrentLanguage();
+    const message = translations[currentLang][messageKey].replace(
       /\{(\w+)\}/g,
       (match, key) => params[key] || match
     );
@@ -276,12 +282,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 添加更新URL的函数
   function updateSiteUrl(oldUrl, newUrl) {
+    // 验证新URL（使用isEdit=true）
+    if (!validateInput(newUrl, true)) {
+      showToast('invalidUrl');
+      return;
+    }
+
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const siteIndex = sites.findIndex(site => site.url === oldUrl);
 
       if (siteIndex !== -1) {
-        sites[siteIndex].url = newUrl;
+        // 转换为标准通配符格式，但保留子域名
+        const standardUrl = newUrl.match(/^\*:\/\//)
+          ? newUrl
+          : `*://${newUrl.replace(/^www\./, '')}/*`;
+
+        sites[siteIndex].url = standardUrl;
         chrome.storage.local.set({ sites }, () => {
           loadSites();
           showToast('urlUpdated', { oldUrl, newUrl });
@@ -299,18 +316,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 语言切换功能
-  function initializeI18n() {
+  async function initializeI18n() {
     const langSelect = document.getElementById('langSelect');
-    const currentLang = getCurrentLanguage();
+    const currentLang = await getCurrentLanguage();
 
     // 设置当前语言
     langSelect.value = currentLang;
-    updateLanguage(currentLang);
+    await updateLanguage(currentLang);
 
     // 语言切换事件
-    langSelect.addEventListener('change', (e) => {
+    langSelect.addEventListener('change', async (e) => {
       const newLang = e.target.value;
-      updateLanguage(newLang);
+      await updateLanguage(newLang);
     });
   }
 

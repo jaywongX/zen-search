@@ -44,34 +44,66 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 // 创建右键菜单
-chrome.runtime.onInstalled.addListener(() => {
-  // 创建父菜单
+chrome.runtime.onInstalled.addListener(async () => {
+  // 获取当前语言
+  const { language = 'en' } = await chrome.storage.local.get(['language']);
+
+  // 创建父菜单（同时支持链接和页面）
   chrome.contextMenus.create({
     id: 'sers-menu',
-    title: 'Search Engine Results Selector',
-    contexts: ['link']
+    title: translations[language]?.extName,
+    contexts: ['link', 'page'] // 添加 page 上下文
   });
 
   // 添加子菜单
   chrome.contextMenus.create({
     id: 'add-to-favorites',
     parentId: 'sers-menu',
-    title: '标记为偏好网站',
-    contexts: ['link']
+    title: translations[language]?.contextMenuFavorite,
+    contexts: ['link', 'page']
   });
 
   chrome.contextMenus.create({
     id: 'add-to-blocked',
     parentId: 'sers-menu',
-    title: '屏蔽此网站',
-    contexts: ['link']
+    title: translations[language]?.contextMenuBlock,
+    contexts: ['link', 'page']
   });
+});
+
+// 更新右键菜单语言
+function updateContextMenus(language) {
+  chrome.contextMenus.update('sers-menu', {
+    title: translations[language]?.extName
+  });
+
+  chrome.contextMenus.update('add-to-favorites', {
+    title: translations[language]?.contextMenuFavorite
+  });
+
+  chrome.contextMenus.update('add-to-blocked', {
+    title: translations[language]?.contextMenuBlock
+  });
+}
+
+// 监听语言变更消息
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'updateContextMenus') {
+    updateContextMenus(message.language);
+  }
 });
 
 // 处理右键菜单点击
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const url = info.linkUrl;
-  const domain = new URL(url).hostname;
+  // 根据上下文获取域名
+  let domain;
+  if (info.linkUrl) {
+    // 如果点击的是链接
+    domain = new URL(info.linkUrl).hostname;
+  } else {
+    // 如果点击的是页面
+    domain = new URL(tab.url).hostname;
+  }
 
   if (info.menuItemId === 'add-to-favorites') {
     addToList(domain, 'favorites', tab.id);
@@ -86,13 +118,21 @@ function addToList(domain, listType, tabId) {
     const sites = data.sites || [];
     const lang = data.language || 'en';
 
+    // 转换域名为通配符格式，只取主域名
+    const parts = domain.split('.');
+    const mainDomain = parts.length > 2
+      ? parts.slice(-2).join('.') // 例如 apps.apple.com -> apple.com
+      : domain;                   // 例如 example.com -> example.com
+
+    const wildcardDomain = `*://*.${mainDomain}/*`;
+
     // 检查网站是否已存在
-    const existingSite = sites.find(site => site.url === domain);
+    const existingSite = sites.find(site => site.url === wildcardDomain);
 
     if (!existingSite) {
       // 添加新网站
       sites.push({
-        url: domain,
+        url: wildcardDomain,
         blocked: listType === 'blocked',
         color: '#e6ffe6',
         top: false

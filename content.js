@@ -170,17 +170,40 @@ function matchDomain(url, pattern) {
   if (!url || typeof url !== 'string') return false;
 
   try {
+    // 确保 URL 有协议
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
     }
-    // 从URL中提取域名
-    const domain = new URL(url).hostname;
-    // 创建正则表达式对象
-    const regex = new RegExp(pattern);
-    // 测试域名是否匹配规则
-    return regex.test(domain);
+
+    // 解析 URL
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+
+    // 从模式中提取域名部分
+    const patternObj = new URL(pattern.replace(/\*/g, 'dummy'));
+    const patternHost = patternObj.hostname.replace(/^dummy\./, '');
+
+    // 如果模式包含具体的子域名（不是通配符），则需要完全匹配
+    if (!pattern.includes('*.')) {
+      return hostname === patternHost.replace(/^dummy/, '');
+    }
+
+    // 否则匹配主域名
+    const hostParts = hostname.split('.');
+    const patternParts = patternHost.split('.');
+
+    // 从后向前匹配域名部分
+    while (patternParts.length > 0 && hostParts.length > 0) {
+      if (patternParts[patternParts.length - 1] !== hostParts[hostParts.length - 1]) {
+        return false;
+      }
+      patternParts.pop();
+      hostParts.pop();
+    }
+
+    return true;
   } catch (e) {
-    console.error('matchDomain error', e);
+    console.error('matchDomain error', e, { url, pattern });
     return false;
   }
 }

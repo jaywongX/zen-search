@@ -12,7 +12,7 @@ const translations = {
     clearData: "Clear Data",
     settings: "Settings",
     urlPlaceholder: "Enter domain, support regex",
-    urlHint: "Examples: example.com or .*example.com",
+    urlHint: "Examples: *://*.example.com/* or *://*.blog.example.com/*",
     settingsTitle: "Settings",
     highlightColor: "Highlight Color",
     previewText: "This is how highlighted results will look",
@@ -41,7 +41,7 @@ const translations = {
     clearData: "清除数据",
     settings: "设置",
     urlPlaceholder: "输入域名，支持正则表达式",
-    urlHint: "示例: example.com 或 .*example.com",
+    urlHint: "示例: *://*.example.com/* 或 *://*.blog.example.com/*",
     settingsTitle: "设置",
     highlightColor: "高亮颜色",
     previewText: "高亮结果将会是这个样子",
@@ -63,7 +63,12 @@ const translations = {
 
 // 获取当前语言
 function getCurrentLanguage() {
-  return localStorage.getItem('language') || 'en';
+  // 改为返回 Promise
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['language'], ({ language }) => {
+      resolve(language || 'en');
+    });
+  });
 }
 
 // 获取翻译文本
@@ -73,9 +78,9 @@ function getMessage(key) {
 }
 
 // 更新界面语言
-function updateLanguage(lang) {
-  // 保存语言设置
-  localStorage.setItem('language', lang);
+async function updateLanguage(lang) {
+  // 使用 chrome.storage.local 存储语言设置
+  await chrome.storage.local.set({ language: lang });
 
   // 更新界面文本
   document.querySelectorAll('[data-i18n]').forEach(el => {
