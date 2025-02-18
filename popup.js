@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSites() {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
-      
+
       renderSites(sites);
     });
   }
@@ -52,9 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
     siteList.addEventListener('click', (e) => {
       const siteItem = e.target.closest('.site-item');
       if (!siteItem) return;
-      
+
       const url = siteItem.dataset.url;
-      
+
       if (e.target.matches('.block-btn')) {
         const isBlocked = e.target.classList.contains('blocked');
         updateSite(url, { blocked: !isBlocked });
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ sites: newSites }, () => {
         loadSites();
         showToast('siteDeleted', { url });
-        
+
         // 只更新当前活动标签页
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const siteItems = siteList.querySelectorAll('.site-item');
-    
+
     siteItems.forEach(item => {
       const url = item.dataset.url.toLowerCase();
       item.style.display = url.includes(searchTerm) ? 'flex' : 'none';
@@ -120,17 +120,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // 验证URL或正则表达式
   function validateInput(input) {
     if (!input) return false;
-    
+
     try {
       // 处理正则表达式字符串
       if (input.includes('*')) {
         // 将 * 转换为正则表达式
         const regexStr = input.replace(/\*/g, '.*')
-                             .replace(/\./g, '\\.');
+          .replace(/\./g, '\\.');
         new RegExp(regexStr);
         return true;
       }
-      
+
       // 尝试作为URL验证
       try {
         new URL(input.startsWith('http') ? input : `http://${input}`);
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ sites }, () => {
         loadSites();
         showToast('siteAdded', { url });
-          // 通知内容脚本更新显示
+        // 通知内容脚本更新显示
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, {
@@ -178,10 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 显示Toast消息
   function showToast(messageKey, params = {}) {
     const message = getMessage(messageKey).replace(
-      /\{(\w+)\}/g, 
+      /\{(\w+)\}/g,
       (match, key) => params[key] || match
     );
-    
+
     // 直接在 popup 中显示提示
     const toast = document.createElement('div');
     toast.className = 'toast';
@@ -227,17 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
         case 'blocked':
           // 屏蔽的排在前面
           return (b.blocked ? 1 : 0) - (a.blocked ? 1 : 0);
-        
+
         case 'color':
           // 有颜色的排在前面，相同情况下按颜色值排序
           if (a.color && !b.color) return -1;
           if (!a.color && b.color) return 1;
           return (a.color || '').localeCompare(b.color || '');
-        
+
         case 'url':
           // 按 URL 字母顺序排序
           return a.url.localeCompare(b.url);
-        
+
         default:
           return 0;
       }
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const siteIndex = sites.findIndex(site => site.url === oldUrl);
-      
+
       if (siteIndex !== -1) {
         sites[siteIndex].url = newUrl;
         chrome.storage.local.set({ sites }, () => {
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeI18n() {
     const langSelect = document.getElementById('langSelect');
     const currentLang = getCurrentLanguage();
-    
+
     // 设置当前语言
     langSelect.value = currentLang;
     updateLanguage(currentLang);
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateColorPreview(color) {
     const preview = document.querySelector('.color-preview');
     preview.style.backgroundColor = color;
-    
+
     // 计算文字颜色（深色背景用白字，浅色背景用黑字）
     const rgb = hexToRgb(color);
     const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const siteIndex = sites.findIndex(site => site.url === url);
-      
+
       if (siteIndex !== -1) {
         sites[siteIndex] = { ...sites[siteIndex], ...updates };
         chrome.storage.local.set({ sites }, () => {

@@ -76,7 +76,7 @@ function getMessage(key) {
 function updateLanguage(lang) {
   // 保存语言设置
   localStorage.setItem('language', lang);
-  
+
   // 更新界面文本
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');

@@ -12,10 +12,28 @@ const SEARCH_ENGINES = {
   },
   bing: {
     host: 'www.bing.com',
-    resultSelector: '#b_results .b_algo',
-    containerSelector: '#b_results',
-    linkSelector: 'h2 a',
-    urlSelector: 'cite'
+    resultSelector: [
+      '#b_results > li.b_algo',
+      '.slide.wptSld[role="listitem"]',
+      '.b_wpt_bl',
+      '#b_results > .b_ans > .b_rich'
+    ].join(','),
+    containerSelector: '#b_content',
+    linkSelector: [
+      'h2 a',
+      '.tilk[href]',
+      '.b_title a',
+      '.b_algo a[h]',
+      'a[data-h]',
+      '.b_tpcn a'
+    ].join(','),
+    urlSelector: [
+      'cite',
+      '.b_attribution cite',
+      '.b_citation',
+      '.tpmeta .b_attribution',
+      '.b_tpcn .b_attribution'
+    ].join(',')
   },
   duckduckgo: {
     host: 'duckduckgo.com',
@@ -90,9 +108,9 @@ const SEARCH_ENGINES = {
   brave: {
     host: 'search.brave.com',
     resultSelector: '.snippet',
-    containerSelector: '[data-type="web"]',  // 网页搜索结果容器
-    linkSelector: '.heading-serpresult',  // 标题链接
-    urlSelector: '.netloc'  // URL 显示元素
+    containerSelector: '[data-type="web"]',
+    linkSelector: '.heading-serpresult',
+    urlSelector: '.netloc'
   },
   onesearch: {
     host: 'www.onesearch.com',
@@ -102,30 +120,20 @@ const SEARCH_ENGINES = {
     urlSelector: '.result-url'
   },
   searx: {
-    host: 'searx',  // 匹配所有 SearX 实例
-    resultSelector: '.result.result-default',  // 更精确的结果选择器
+    host: 'searx',
+    resultSelector: '.result.result-default',
     containerSelector: '#main_results',
-    linkSelector: 'h3 a',  // 更新标题链接选择器
-    urlSelector: '.url_i1'  // 更新 URL 选择器为实际显示 URL 的元素
+    linkSelector: 'h3 a',
+    urlSelector: '.url_i1'
   },
   qwant: {
     host: 'www.qwant.com',
     resultSelector: '[data-testid="webResult"]',
     containerSelector: '[data-testid="SERVariant-A"]',
     linkSelector: '[data-testid="webResult"] a[href]',
-    urlSelector: '[domain]'  
+    urlSelector: '[domain]'
   }
 };
-
-/**
- * 应用自定义样式
- * @param {HTMLElement} element - 要应用样式的元素
- * @param {object} styles - 样式对象
- */
-function applyCustomStyle(element, styles) {
-  element.style.backgroundColor = styles.highlightColor;
-  element.style.borderLeft = `${styles.borderWidth}px solid ${styles.borderColor}`;
-}
 
 /**
  * 获取当前搜索引擎配置
@@ -135,52 +143,6 @@ function getCurrentEngine() {
   const host = window.location.host;
   const engine = Object.values(SEARCH_ENGINES).find(engine => host.includes(engine.host));
   return engine;
-}
-
-/**
- * 结果处理配置
- */
-const RESULT_STYLES = {
-  hidden: {
-    opacity: '0.5',
-    backgroundColor: '#f5f5f5'
-  },
-  highlighted: {
-    backgroundColor: '#e6ffe6',
-    borderLeft: '3px solid #4CAF50'
-  }
-};
-
-/**
- * 应用视觉样式
- * @param {HTMLElement} result - 搜索结果元素
- * @param {string} type - 样式类型 ('hidden' 或 'highlighted')
- * @param {object} styles - 样式对象
- */
-function applyVisualEnhancement(result, type, styles) {
-  const element = result;
-
-  if (type === 'hidden') {
-    element.style.opacity = styles.hiddenOpacity || '0.5';
-    element.style.backgroundColor = '#f5f5f5';
-    addIcon(element, '🚫');
-  } else if (type === 'highlighted') {
-    element.style.backgroundColor = styles.highlightColor || '#e6ffe6';
-    element.style.borderLeft = `${styles.borderWidth || 3}px solid ${styles.borderColor || '#4CAF50'}`;
-    addIcon(element, '⭐');
-  }
-}
-
-/**
- * 添加图标
- * @param {HTMLElement} element - 要添加图标的元素
- * @param {string} icon - 要添加的图标
- */
-function addIcon(element, icon) {
-  const iconSpan = document.createElement('span');
-  iconSpan.className = 'result-icon';
-  iconSpan.textContent = icon;
-  element.insertBefore(iconSpan, element.firstChild);
 }
 
 /**
@@ -199,122 +161,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
- * URL缓存管理器
- */
-const UrlCache = {
-  // 缓存数据
-  _cache: new Map(),
-
-  // 缓存过期时间（24小时）
-  _expireTime: 60 * 60 * 1000,
-
-  /**
-   * 获取缓存的URL
-   * @param {string} key - 缓存键值
-   * @returns {string|null} 缓存的URL或null
-   */
-  get(key) {
-    const data = this._cache.get(key);
-    if (!data) return null;
-
-    // 检查是否过期
-    if (Date.now() - data.timestamp > this._expireTime) {
-      this._cache.delete(key);
-      return null;
-    }
-
-    return data.url;
-  },
-
-  /**
-   * 设置缓存
-   * @param {string} key - 缓存键值
-   * @param {string} url - 要缓存的URL
-   */
-  set(key, url) {
-    this._cache.set(key, {
-      url,
-      timestamp: Date.now()
-    });
-
-    // 如果缓存太大，清理旧数据
-    if (this._cache.size > 1000) {
-      const oldestKey = Array.from(this._cache.entries())
-        .sort(([, a], [, b]) => a.timestamp - b.timestamp)[0][0];
-      this._cache.delete(oldestKey);
-    }
-  }
-};
-
-// 验证URL或正则表达式
-function validURL(url) {
-  if (!url) return false;
-
-  try {
-    // 处理正则表达式字符串
-    if (url.includes('*')) {
-      // 将 * 转换为正则表达式
-      const regexStr = url.replace(/\*/g, '.*')
-        .replace(/\./g, '\\.');
-      new RegExp(regexStr);
-      return true;
-    }
-
-    // 尝试作为URL验证
-    try {
-      new URL(url.startsWith('http') ? url : `http://${url}`);
-      return true;
-    } catch {
-      // 如果不是有效URL，尝试作为域名验证
-      return /^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$/.test(url);
-    }
-  } catch (e) {
-    return false;
-  }
-}
-
-/**
- * 从搜索结果中提取URL
- * @param {HTMLElement} result - 搜索结果元素
- * @returns {string|null} 提取的URL
- */
-async function extractUrl(result) {
-  const engine = getCurrentEngine();
-  if (!engine) return '';
-
-  // 获取URL元素和链接元素
-  const urlElement = result.querySelector(engine.urlSelector);
-  const linkElement = result.querySelector(engine.linkSelector);
-
-  let url = '';
-
-  if (urlElement && urlElement.textContent) {
-    url = urlElement.textContent
-      .trim()
-      .split(/[›»]/) // 分割特殊字符
-      .map(part => part.trim()) // 清理每个部分
-      .filter(Boolean)[0]; // 取第一部分
-  } else if (linkElement && linkElement.href) {
-    url = linkElement.href;
-  }
-
-  // console.log('Extracted URL:', {
-  //   result,
-  //   urlElement,
-  //   linkElement,
-  //   url
-  // });
-
-  return url;
-}
-
-/**
  * 检查URL是否匹配规则
  * @param {string} url - 要检查的URL
  * @param {string} pattern - 匹配模式
  * @returns {boolean} 是否匹配
  */
 function matchDomain(url, pattern) {
+  if (!url || typeof url !== 'string') return false;
+
   try {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
@@ -326,7 +180,7 @@ function matchDomain(url, pattern) {
     // 测试域名是否匹配规则
     return regex.test(domain);
   } catch (e) {
-    console.error('Error matching domain:', e);
+    console.error('matchDomain error', e);
     return false;
   }
 }
@@ -347,34 +201,102 @@ function showToast(message) {
 }
 
 /**
- * 根据好感度处理搜索结果的主函数
+ * 从搜索结果中提取URL
+ * @param {HTMLElement} result - 搜索结果元素
+ * @returns {string|null} 提取的URL
+ */
+function extractUrl(result) {
+  const engine = getCurrentEngine();
+  if (!engine) return null;
+
+  let url = null;
+
+  // 1. 使用引擎特定的URL选择器
+  const urlElement = result.querySelector(engine.urlSelector);
+  if (urlElement && urlElement.textContent) {
+    url = urlElement.textContent
+      .trim()
+      .split(/[›»]/) // 分割特殊字符
+      .map(part => part.trim()) // 清理每个部分
+      .filter(Boolean)[0]; // 取第一部分
+  }
+
+  // 2. 使用引擎特定的链接选择器
+  if (!url && engine.linkSelector) {
+    const link = result.querySelector(engine.linkSelector);
+    if (link?.href) {
+      url = link.href;
+    }
+  }
+
+  // 3. 查找标题中的链接
+  if (!url) {
+    const titleLink = result.querySelector('h1 a[href], h2 a[href], h3 a[href]');
+    if (titleLink?.href) {
+      url = titleLink.href;
+    }
+  }
+
+  // 4. 尝试任何非特殊的链接
+  if (!url) {
+    const anyLink = result.querySelector('a[href]:not([href^="#"]):not([href^="javascript"])');
+    if (anyLink?.href) {
+      url = anyLink.href;
+    }
+  }
+
+  return url || null;
+}
+
+/**
+ * 处理搜索结果的主函数
  */
 async function filterResults() {
-  chrome.storage.local.get(['sites'], async (data) => {
-    const sites = data.sites || [];
+  if (window._filterTimeout) {
+    clearTimeout(window._filterTimeout);
+  }
+
+  window._filterTimeout = setTimeout(async () => {
+    let results = [];
     const engine = getCurrentEngine();
-    const results = document.querySelectorAll(engine.resultSelector);
+    if (!engine) return;
 
-    for (const result of results) {
-      const url = await extractUrl(result);
-      if (!url) continue;
+    results = document.querySelectorAll(engine.resultSelector);
+    if (results.length === 0) return;
 
-      // 清除之前的高亮和屏蔽效果
-      result.style.removeProperty('display');
-      result.style.removeProperty('background-color');
+    // 处理找到的结果
+    await processResults(results);
+  }, 100);
+}
 
-      for (const site of sites) {
-        if (matchDomain(url, site.url)) {
-          if (site.blocked) {
-            result.style.setProperty('display', 'none', 'important');
-          } else {
-            result.style.setProperty('background-color', site.color, 'important');
-          }
-          break; // 找到匹配的网站后跳出循环
+/**
+ * 处理搜索结果
+ * @param {Element[]} results - 搜索结果元素数组
+ */
+async function processResults(results) {
+  const { sites = [] } = await chrome.storage.local.get('sites');
+  if (sites.length === 0) return;
+
+  for (const result of results) {
+    // 重置样式
+    result.style.removeProperty('display');
+    result.style.removeProperty('background-color');
+
+    const url = extractUrl(result);
+    if (!url) continue;
+
+    // 匹配规则
+    for (const site of sites) {
+      if (matchDomain(url, site.url)) {
+        if (site.blocked) {
+          result.style.setProperty('display', 'none', 'important');
+        } else {
+          result.style.setProperty('background-color', site.color, 'important');
         }
+        break;
       }
     }
-  });
+  }
 }
 
 /**
@@ -388,41 +310,58 @@ function handleInfiniteScroll() {
   const container = document.querySelector(engine.containerSelector);
   if (!container) return;
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        filterResults();
+  // 使用防抖优化 MutationObserver 回调
+  let debounceTimer;
+  const observer = new MutationObserver((mutations) => {
+    // 检查是否有实际的内容变化
+    const hasRelevantChanges = mutations.some(mutation => {
+      // 只关注新增的节点
+      if (mutation.type !== 'childList' || mutation.addedNodes.length === 0) {
+        return false;
       }
+
+      // 检查新增节点是否是搜索结果
+      return Array.from(mutation.addedNodes).some(node => {
+        if (!(node instanceof Element)) return false;
+
+        // 检查是否是搜索结果元素
+        if (engine.resultSelector && node.matches(engine.resultSelector)) {
+          return true;
+        }
+
+        // 检查是否包含搜索结果
+        return node.querySelector(engine.resultSelector);
+      });
     });
-  }, {
-    root: null,
-    rootMargin: '100px',
-    threshold: 0.1
+
+    if (!hasRelevantChanges) return;
+
+    // 使用防抖处理频繁触发
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      filterResults();
+    }, 100);
   });
 
-  observer.observe(container);
+  // 配置观察选项
+  observer.observe(container, {
+    childList: true,      // 观察子节点变化
+    subtree: true,        // 观察所有后代节点
+    attributes: false,    // 不观察属性变化
+    characterData: false  // 不观察文本内容变化
+  });
+
 }
 
 /**
  * 观察页面变化
  */
 function observePageChanges() {
-  const engine = getCurrentEngine();
-  if (!engine) return;
-
-  // 检查是否有结果
-  function checkResults() {
-    const results = document.querySelectorAll(engine.resultSelector);
-    if (results.length > 0) {
-      filterResults();
-    }
-  }
-
   // 创建观察器实例
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        checkResults();
+        filterResults();
         break;
       }
     }
@@ -441,7 +380,7 @@ function observePageChanges() {
   window._searchObserver = observer;
 
   // 初始检查
-  checkResults();
+  filterResults();
 }
 
 /**
@@ -489,6 +428,10 @@ function observeUrlChanges() {
  * 初始化
  */
 function initialize() {
+  // 获取当前搜索引擎配置
+  const engine = getCurrentEngine();
+  if (!engine) return;
+
   // 初始化页面观察器
   observePageChanges();
 
@@ -525,15 +468,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   }
 });
-
-function updateSiteHighlight(url, color) {
-  const results = document.querySelectorAll(getCurrentEngine().resultSelector);
-  results.forEach(result => {
-    const resultUrl = extractUrl(result);
-    if (resultUrl && matchDomain(resultUrl, url)) {
-      result.style.backgroundColor = color;
-    }
-  });
-}
 
 initialize(); 

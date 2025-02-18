@@ -13,4 +13,4 @@
 /* 确保高亮样式优先级 */
 [class*="result"][style*="background-color"] {
   background-color: inherit !important;
-} 
+}

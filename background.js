@@ -6,99 +6,19 @@
 import { translations } from './i18n.js';
 
 /**
- * 监听扩展安装或更新事件
- * 用于初始化扩展的默认配置和数据
- */
-chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install') {
-    // 首次安装时初始化存储数据
-    chrome.storage.local.set({
-      sites: [
-        {
-          url: '*.example.com',
-          blocked: false,
-          color: '#e6ffe6',
-          top: false
-        }
-      ],
-      // 屏蔽列表，存储要过滤的网站规则
-      blocked: [
-        '*.example.com',
-        '*.spam-site.com'
-      ],
-      // 偏好列表，存储要高亮的网站规则
-      favorites: [],
-      // 统计数据
-      stats: {
-        filteredCount: 0,        // 已过滤数量
-        highlightedCount: 0,     // 已高亮数量
-        startTime: Date.now(),   // 安装时间
-        estimatedTimeSaved: 0    // 预计节省时间
-      },
-      // 样式配置
-      styles: {
-        highlightColor: '#e6ffe6',
-        highlightBorder: '#4CAF50'
-      }
-    });
-  }
-});
-
-/**
  * 监听来自内容脚本的消息
  * 处理跨域通信和数据请求
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // 处理统计数据更新
-  if (message.type === 'updateStats') {
-    chrome.storage.local.get(['stats'], (data) => {
-      const stats = data.stats || {};
-      stats[message.statType]++;
-      
-      // 更新存储
-      chrome.storage.local.set({ stats }, () => {
-        sendResponse({ success: true });
-      });
-    });
-    return true; // 保持消息通道开放
-  }
-  
-  // 处理规则更新
-  if (message.type === 'updateRules') {
-    chrome.storage.local.get(['blocked', 'favorites'], (data) => {
-      const { domain, action, operation } = message;
-      const list = action === 'block' ? 'blocked' : 'favorites';
-      const rules = data[list] || [];
-      
-      if (operation === 'add') {
-        // 添加新规则
-        if (!rules.includes(domain)) {
-          rules.push(domain);
-        }
-      } else if (operation === 'remove') {
-        // 移除规则
-        const index = rules.indexOf(domain);
-        if (index > -1) {
-          rules.splice(index, 1);
-        }
-      }
-      
-      // 更新存储
-      chrome.storage.local.set({ [list]: rules }, () => {
-        sendResponse({ success: true });
-      });
-    });
-    return true;
-  }
 
   // 更新右键菜单文本
   if (message.type === 'updateContextMenus') {
     const lang = message.language;
-    
+
     chrome.contextMenus.update('add-to-favorites', {
       title: translations[lang].contextMenuFavorite
     });
-    
+
     chrome.contextMenus.update('add-to-blocked', {
       title: translations[lang].contextMenuBlock
     });
@@ -162,24 +82,52 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 // 添加到列表
 function addToList(domain, listType, tabId) {
-  chrome.storage.local.get([listType, 'language'], (data) => {
-    const list = data[listType] || [];
+  chrome.storage.local.get(['sites', 'language'], (data) => {
+    const sites = data.sites || [];
     const lang = data.language || 'en';
-    
-    if (!list.includes(domain)) {
-      list.push(domain);
-      chrome.storage.local.set({ [listType]: list }, () => {
+
+    // 检查网站是否已存在
+    const existingSite = sites.find(site => site.url === domain);
+
+    if (!existingSite) {
+      // 添加新网站
+      sites.push({
+        url: domain,
+        blocked: listType === 'blocked',
+        color: '#e6ffe6',
+        top: false
+      });
+
+      // 更新存储
+      chrome.storage.local.set({ sites }, () => {
         // 显示本地化的提示消息
-        const message = listType === 'favorites' 
+        const message = listType === 'favorites'
           ? translations[lang].addedToFavorites.replace('{domain}', domain)
           : translations[lang].siteBlocked.replace('{domain}', domain);
-        
+
         chrome.tabs.sendMessage(tabId, {
           type: 'showToast',
           message: message
         });
 
         // 更新搜索结果
+        chrome.tabs.sendMessage(tabId, {
+          type: 'updateResults'
+        });
+      });
+    } else {
+      // 如果网站已存在，更新其状态
+      existingSite.blocked = listType === 'blocked';
+      chrome.storage.local.set({ sites }, () => {
+        const message = listType === 'blocked'
+          ? translations[lang].siteBlocked.replace('{domain}', domain)
+          : translations[lang].addedToFavorites.replace('{domain}', domain);
+
+        chrome.tabs.sendMessage(tabId, {
+          type: 'showToast',
+          message: message
+        });
+
         chrome.tabs.sendMessage(tabId, {
           type: 'updateResults'
         });
