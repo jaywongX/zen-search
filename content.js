@@ -185,31 +185,43 @@ function matchDomain(url, pattern) {
 
     // 解析 URL
     const urlObj = new URL(url);
-    const hostname = urlObj.hostname;
+    
+    // 解析匹配模式
+    const [scheme, rest] = pattern.split('://');
+    if (!rest) return false;
 
-    // 从模式中提取域名部分
-    const patternObj = new URL(pattern.replace(/\*/g, 'dummy'));
-    const patternHost = patternObj.hostname.replace(/^dummy\./, '');
-
-    // 如果模式包含具体的子域名（不是通配符），则需要完全匹配
-    if (!pattern.includes('*.')) {
-      return hostname === patternHost.replace(/^dummy/, '');
+    // 检查协议
+    if (scheme !== '*' && scheme !== urlObj.protocol.slice(0, -1)) {
+      return false;
     }
 
-    // 否则匹配主域名
-    const hostParts = hostname.split('.');
-    const patternParts = patternHost.split('.');
+    const [host, ...pathParts] = rest.split('/');
+    const path = '/' + pathParts.join('/');
 
-    // 从后向前匹配域名部分
-    while (patternParts.length > 0 && hostParts.length > 0) {
-      if (patternParts[patternParts.length - 1] !== hostParts[hostParts.length - 1]) {
+    // 检查主机名
+    if (host.startsWith('*.')) {
+      // 通配符匹配子域名
+      const domainToMatch = host.slice(2);
+      // 允许匹配主域名或其子域名
+      if (!urlObj.hostname.endsWith(domainToMatch)) {
         return false;
       }
-      patternParts.pop();
-      hostParts.pop();
+    } else {
+      // 精确匹配主机名
+      if (urlObj.hostname !== host) {
+        return false;
+      }
     }
 
-    return true;
+    // 检查路径
+    if (path === '/*') {
+      return true; // 匹配所有路径
+    } else {
+      // 移除结尾的通配符进行前缀匹配
+      const pathPrefix = path.endsWith('/*') ? path.slice(0, -1) : path;
+      return urlObj.pathname.startsWith(pathPrefix);
+    }
+
   } catch (e) {
     console.error('matchDomain error', e, { url, pattern });
     return false;
@@ -242,21 +254,21 @@ function extractUrl(result) {
 
   let url = null;
 
-  // 1. 使用引擎特定的URL选择器
-  const urlElement = result.querySelector(engine.urlSelector);
-  if (urlElement && urlElement.textContent) {
-    url = urlElement.textContent
-      .trim()
-      .split(/[›»]/) // 分割特殊字符
-      .map(part => part.trim()) // 清理每个部分
-      .filter(Boolean)[0]; // 取第一部分
+  // 1. 使用引擎特定的链接选择器
+  const link = result.querySelector(engine.linkSelector);
+  if (link?.href) {
+    url = link.href;
   }
 
-  // 2. 使用引擎特定的链接选择器
-  if (!url && engine.linkSelector) {
-    const link = result.querySelector(engine.linkSelector);
-    if (link?.href) {
-      url = link.href;
+  // 2. 使用引擎特定的URL选择器
+  if (!url && engine.urlSelector) {
+    const urlElement = result.querySelector(engine.urlSelector);
+    if (urlElement && urlElement.textContent) {
+      url = urlElement.textContent
+        .trim()
+        .split(/[›»]/) // 分割特殊字符
+        .map(part => part.trim()) // 清理每个部分
+        .filter(Boolean)[0]; // 取第一部分
     }
   }
 

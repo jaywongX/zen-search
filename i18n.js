@@ -1,7 +1,7 @@
 // 定义语言包
 const translations = {
   en: {
-    extName: "Search Engine Results Selector",
+    extName: "ZenSearch - Search in Peace",
     searchPlaceholder: "Search sites...",
     sortByRating: "Sort by rating",
     sortByUrl: "Sort by URL",
@@ -14,7 +14,7 @@ const translations = {
     clearData: "Clear All Data",
     settings: "Settings",
     urlPlaceholder: "Enter domain, support regex",
-    urlHint: "Examples: *://*.example.com/* or *://*.blog.example.com/*",
+    urlHint: "Examples: *://*.example.com/*",
     settingsTitle: "Settings",
     highlightColor: "Highlight Color",
     previewText: "This is how highlighted results will look",
@@ -36,7 +36,7 @@ const translations = {
     proposeFeature: "Propose a New Feature"
   },
   zh_CN: {
-    extName: "搜索引擎结果优化器",
+    extName: "ZenSearch - Search in Peace",
     searchPlaceholder: "搜索网站...",
     sortByRating: "按好感度排序",
     sortByUrl: "按网址排序",
@@ -49,7 +49,7 @@ const translations = {
     clearData: "清除所有数据",
     settings: "设置",
     urlPlaceholder: "输入域名，支持正则表达式",
-    urlHint: "示例: *://*.example.com/* 或 *://*.blog.example.com/*",
+    urlHint: "示例: *://*.example.com/*",
     settingsTitle: "设置",
     highlightColor: "高亮颜色",
     previewText: "高亮结果将会是这个样子",

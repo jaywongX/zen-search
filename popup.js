@@ -116,23 +116,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 验证URL或正则表达式
+  // 验证URL匹配模式
   function validateInput(input, isEdit = false) {
     if (!input) return false;
 
     try {
-      // 检查是否是标准通配符格式
-      if (input.match(/^\*:\/\/([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+\/\*$/)) {
+      // 标准匹配模式的正则表达式
+      // 允许以下格式：
+      // *://*.example.com/*
+      // *://example.com/*
+      // *://*.example.com/path/*
+      // https://*.example.com/*
+      const patternRegex = /^(\*|https?):\/\/(\*\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/.*)?\*$/;
+      
+      // 检查是否是标准匹配模式
+      if (patternRegex.test(input)) {
         return true;
       }
 
-      // 如果不是标准格式，尝试转换
-      if (input.match(/^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/)) {
-        return true;
+      // 如果是域名格式，自动转换为匹配模式
+      const domainRegex = /^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/;
+      if (domainRegex.test(input)) {
+        // 在编辑模式下返回转换后的格式
+        return isEdit ? `*://*.${input}/*` : true;
       }
 
       return false;
     } catch (e) {
+      console.error('validateInput error', e, { input });
       return false;
     }
   }

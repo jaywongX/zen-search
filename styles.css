@@ -16,10 +16,10 @@ body {
 
 /* 头部样式 */
 .header {
+  height: 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   background-color: #ffffff;
   margin: -20px -20px 20px -20px;
   padding: 16px 20px;
@@ -28,7 +28,7 @@ body {
 
 .header-left {
   display: flex;
-  align-items: center;
+  align-items: left;
   gap: 12px;
 }
 
@@ -39,7 +39,7 @@ body {
   margin: 0;
 }
 
-.header-actions {
+.header-lang {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -66,6 +66,7 @@ body {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
+  width: 100%;
 }
 
 .search-box {
@@ -107,8 +108,7 @@ body {
 
 /* 网站列表样式 */
 .site-list {
-  max-width: 100%;
-  overflow-x: hidden;
+  width: 100%;
   max-height: 300px;
   overflow-y: auto;
   margin-bottom: 16px;
@@ -123,6 +123,7 @@ body {
   align-items: center;
   padding: 6px;
   gap: 2px;  /* 减小按钮间距 */
+  border: 1px solid #e0e0e0;
 }
 
 .site-item:last-child {
@@ -192,17 +193,19 @@ body {
 
 /* 添加网站区域 */
 .add-site-container {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;  /* 减小间距 */
-  padding: 8px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 /* URL提示区域 */
 .url-hint-container {
-  display: flex;
-  gap: 8px;
+  width: 100%;
   margin-bottom: 16px;
+  color: #666;
+  font-size: 0.9em;
 }
 
 #urlInput,
@@ -235,17 +238,10 @@ body {
 
 /* 错误提示区域 */
 .error-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px;
-  background: #ff4757;
-  color: #fff;
-  font-size: 14px;
-  text-align: center;
-  transform: translateY(100%);
-  transition: transform 0.3s;
+  width: 100%;
+  margin-bottom: 16px;
+  color: #d32f2f;
+  font-size: 0.9em;
 }
 
 .error-container.show {
@@ -772,18 +768,6 @@ body {
   margin-bottom: 24px;
 }
 
-.header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.sort-container {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px;
-}
-
 /* 语言切换按钮样式 */
 .lang-switch {
   display: flex;
@@ -1032,7 +1016,6 @@ body {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background-color: white;
   font-size: 14px;
 }
 
@@ -1098,14 +1081,12 @@ body {
 /* 设置页面样式 */
 .settings-page {
   width: 400px;
-  min-height: 300px;
   padding: 0;
   background: #f8f9fa;
 }
 
 .settings-header {
-  display: flex;
-  align-items: center;
+  height: 40px;
   padding: 16px;
   background: #fff;
   border-bottom: 1px solid #eee;
@@ -1113,9 +1094,7 @@ body {
 
 .back-button {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 4px;
   border: none;
   background: none;
   cursor: pointer;
@@ -1124,13 +1103,14 @@ body {
 }
 
 .back-icon {
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .settings-title {
-  margin-left: 16px;
   font-size: 16px;
   font-weight: 500;
+  color: #2c3e50;
+  margin: 0;
 }
 
 .settings-content {

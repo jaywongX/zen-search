@@ -1,4 +1,4 @@
-# Search Engine Results Selector
+# ZenSearch - Search in Peace
 
 A browser extension to customize and enhance search engine results.
 
