@@ -10,28 +10,29 @@
 <body>
   <!-- 头部区域 -->
   <div class="header">
-    <h1 class="header-title" data-i18n="extName"></h1>
+    <div class="header-left">
+      <button class="icon-button" id="settingsBtn" title="Settings">⚙️</button>
+      <h1 class="header-title" data-i18n="extName"></h1>
+    </div>
     <div class="header-actions">
       <select id="langSelect" class="lang-select">
         <option value="en">English</option>
         <option value="zh_CN">中文</option>
       </select>
-      <button class="icon-button" id="settingsBtn" title="Settings">⚙️</button>
     </div>
   </div>
 
   <!-- 搜索和排序区域 -->
-  <div class="search-sort-container">
-    <div class="search-box">
+  <div class="search-controls">
+    <div class="search-container">
       <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder">
-      <span class="search-icon">🔍</span>
     </div>
     <div class="sort-container">
       <select id="sortSelect" class="sort-select">
-        <option value="rating" data-i18n="sortByRating"></option>
-        <option value="url" data-i18n="sortByUrl"></option>
+        <option value="url" data-i18n="sortByUrl">Sort by URL</option>
+        <option value="blocked" data-i18n="sortByBlocked">Sort by Blocked</option>
+        <option value="color" data-i18n="sortByColor">Sort by Color</option>
       </select>
-      <button class="icon-button" id="clearDataBtn" title="Clear Data">🗑️</button>
     </div>
   </div>
 

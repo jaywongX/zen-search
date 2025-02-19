@@ -5,11 +5,13 @@ const translations = {
     searchPlaceholder: "Search sites...",
     sortByRating: "Sort by rating",
     sortByUrl: "Sort by URL",
+    sortByBlocked: "Sort by Blocked",
+    sortByColor: "Sort by Color",
     addSite: "Add",
     favorite: "Favorite",
     blocked: "Blocked",
     unblocked: "Unblocked",
-    clearData: "Clear Data",
+    clearData: "Clear All Data",
     settings: "Settings",
     urlPlaceholder: "Enter domain, support regex",
     urlHint: "Examples: *://*.example.com/* or *://*.blog.example.com/*",
@@ -28,17 +30,23 @@ const translations = {
     siteAdded: "Added {url}",
     top: "Top",
     untop: "Untop",
-    delete: "Delete"
+    delete: "Delete",
+    back: "Back",
+    reportIssue: "Report an Issue",
+    proposeFeature: "Propose a New Feature"
   },
   zh_CN: {
     extName: "搜索引擎结果优化器",
     searchPlaceholder: "搜索网站...",
     sortByRating: "按好感度排序",
     sortByUrl: "按网址排序",
+    sortByBlocked: "按屏蔽排序",
+    sortByColor: "按颜色排序",
     addSite: "添加",
     favorite: "偏好",
     blocked: "屏蔽",
-    clearData: "清除数据",
+    unblocked: "未屏蔽",
+    clearData: "清除所有数据",
     settings: "设置",
     urlPlaceholder: "输入域名，支持正则表达式",
     urlHint: "示例: *://*.example.com/* 或 *://*.blog.example.com/*",
@@ -57,7 +65,10 @@ const translations = {
     siteAdded: "已添加 {url}",
     top: "置顶",
     untop: "取消置顶",
-    delete: "删除"
+    delete: "删除",
+    back: "返回",
+    reportIssue: "报告问题",
+    proposeFeature: "提出新功能"
   }
 };
 

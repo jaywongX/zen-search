@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const siteList = document.getElementById('siteList');
   const searchInput = document.getElementById('searchInput');
   const settingsBtn = document.getElementById('settingsBtn');
-  const clearDataBtn = document.getElementById('clearDataBtn');
   const urlInput = document.getElementById('urlInput');
   const ratingSelect = document.getElementById('ratingSelect');
   const addSiteBtn = document.getElementById('addSiteBtn');
@@ -26,11 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 获取当前语言
     const currentLang = await getCurrentLanguage();
 
-    // 按置顶和URL排序
-    const sortedSites = sites.sort((a, b) => {
-      if (a.top !== b.top) return b.top ? 1 : -1;
-      return a.url.localeCompare(b.url);
-    });
+    // 使用当前选择的排序方式
+    const currentSortBy = sortSelect.value;
+    const sortedSites = sortSites(sites, currentSortBy);
 
     siteList.innerHTML = sortedSites.map(site => `
       <div class="site-item" data-url="${site.url}">
@@ -226,58 +223,52 @@ document.addEventListener('DOMContentLoaded', () => {
     urlInput.classList.toggle('invalid', !isValid);
   });
 
+  // 排序选择器事件监听
+  sortSelect.addEventListener('change', (e) => {
+    chrome.storage.local.get(['sites'], ({ sites = [] }) => {
+      const sortedSites = sortSites(sites, e.target.value);
+      renderSites(sortedSites);
+    });
+  });
+
   // 排序网站列表
   function sortSites(sites, sortBy) {
     return [...sites].sort((a, b) => {
+      // 首先按置顶状态排序
+      if (a.top !== b.top) {
+        return b.top ? 1 : -1;
+      }
+
       switch (sortBy) {
-        case 'blocked':
-          // 屏蔽的排在前面
-          return (b.blocked ? 1 : 0) - (a.blocked ? 1 : 0);
-
-        case 'color':
-          // 有颜色的排在前面，相同情况下按颜色值排序
-          if (a.color && !b.color) return -1;
-          if (!a.color && b.color) return 1;
-          return (a.color || '').localeCompare(b.color || '');
-
         case 'url':
           // 按 URL 字母顺序排序
           return a.url.localeCompare(b.url);
 
+        case 'blocked':
+          // 先按屏蔽状态排序，相同状态下按URL排序
+          if (a.blocked !== b.blocked) {
+            return b.blocked ? -1 : 1;
+          }
+          return a.url.localeCompare(b.url);
+
+        case 'color':
+          // 先按是否有颜色排序，然后按颜色值排序，最后按URL排序
+          if (a.color !== b.color) {
+            if (!a.color) return 1;
+            if (!b.color) return -1;
+            return a.color.localeCompare(b.color);
+          }
+          return a.url.localeCompare(b.url);
+
         default:
-          return 0;
+          return a.url.localeCompare(b.url);
       }
     });
   }
 
-  // 更新排序按钮状态
-  function updateSortButtons(activeSortBy) {
-    document.querySelectorAll('.sort-button').forEach(button => {
-      button.classList.toggle('active', button.dataset.sort === activeSortBy);
-    });
-  }
-
-  // 添加排序按钮点击事件
-  document.querySelectorAll('.sort-button').forEach(button => {
-    button.addEventListener('click', () => {
-      const sortBy = button.dataset.sort;
-      updateSortButtons(sortBy);
-      // 获取并排序网站列表
-      chrome.storage.local.get(['sites'], ({ sites = [] }) => {
-        const sortedSites = sortSites(sites, sortBy);
-        renderSites(sortedSites);
-      });
-    });
-  });
-
-  // 清除所有数据
-  clearDataBtn.addEventListener('click', () => {
-    if (confirm(getMessage('clearDataConfirm'))) {
-      chrome.storage.local.clear(() => {
-        showToast('dataCleared');
-        loadSites();
-      });
-    }
+  // 切换设置菜单显示
+  settingsBtn.addEventListener('click', () => {
+    window.location.href = 'settings.html';
   });
 
   // 添加更新URL的函数

@@ -58,10 +58,18 @@ const SEARCH_ENGINES = {
   },
   yandex: {
     host: 'yandex.com',
-    resultSelector: '.serp-item',
-    containerSelector: '.content__left',
-    linkSelector: '.OrganicTitle-Link',
-    urlSelector: '.Path-Item'
+    resultSelector: [
+      '.serp-item.organic',
+      '.serp-item.Organic',
+      '.serp-item.OrganicGroup',
+      '.serp-item.Organic.organic',
+      '.serp-item.Organic.OrganicGroup',
+      '.Organic.organic',
+      '.Organic.OrganicGroup'
+    ].join(','),
+    containerSelector: '.content__left, .main__content',
+    linkSelector: '.OrganicTitle-Link, .organic__url, .Link.Link_theme_normal',
+    urlSelector: '.Path.Organic-Path, .OrganicTitle-Path, .organic__subtitle .Path-Item'
   },
   yandexRu: {
     host: 'yandex.ru',

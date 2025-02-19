@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "Search Engine Results Selector",
-    "version": "1.0.0",
-    "description": "自定义过滤和增强搜索引擎结果",
+    "version": "1.0.1",
+    "description": "A browser extension to customize and enhance search engine results",
     "icons": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

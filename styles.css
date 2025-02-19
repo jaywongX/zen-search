@@ -11,6 +11,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #f8f9fa;
   color: #343a40;
+  background-color: #f8f9fa;
 }
 
 /* 头部样式 */
@@ -19,12 +20,29 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  background-color: #ffffff;
+  margin: -20px -20px 20px -20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .header-title {
   font-size: 16px;
   font-weight: 500;
   color: #2c3e50;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .icon-button {
@@ -34,10 +52,13 @@ body {
   cursor: pointer;
   border-radius: 6px;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-button:hover {
-  background-color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* 搜索和排序区域 */
@@ -974,4 +995,178 @@ body {
 
 .result-blocked {
   display: none !important;
+}
+
+/* 搜索和排序控件样式 */
+.search-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 0 10px;
+}
+
+.search-container {
+  flex: 1;
+  position: relative;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+
+#sortSelect {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+}
+
+/* 美化下拉框样式 */
+#sortSelect:hover {
+  border-color: #999;
+}
+
+#sortSelect:focus {
+  outline: none;
+  border-color: #666;
+  box-shadow: 0 0 3px rgba(0,0,0,0.1);
+}
+
+/* 设置下拉菜单样式 */
+.settings-dropdown {
+  position: relative;
+}
+
+.settings-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 180px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 8px 0;
+  display: none;
+  z-index: 1000;
+}
+
+.settings-menu.show {
+  display: block;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  text-align: left;
+}
+
+.settings-item:hover {
+  background-color: #f5f5f5;
+}
+
+.settings-icon {
+  margin-right: 8px;
+}
+
+/* 确保设置按钮在点击时保持样式 */
+.icon-button.active {
+  background-color: #f5f5f5;
+}
+
+/* 设置页面样式 */
+.settings-page {
+  width: 400px;
+  min-height: 300px;
+  padding: 0;
+  background: #f8f9fa;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.back-icon {
+  font-size: 18px;
+}
+
+.settings-title {
+  margin-left: 16px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.settings-content {
+  padding: 16px;
+}
+
+.menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.menu-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.menu-text {
+  font-size: 14px;
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Settings - Search Engine Results Selector</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="settings-page">
+  <div class="settings-header">
+    <button class="back-button" id="backBtn">
+      <span class="back-icon">←</span>
+      <span data-i18n="back">Back</span>
+    </button>
+    <h1 class="settings-title" data-i18n="settings">Settings</h1>
+  </div>
+
+  <div class="settings-content">
+    <div class="menu-items">
+      <!-- 清除数据 -->
+      <button class="menu-item" id="clearDataBtn">
+        <span class="menu-icon">🗑️</span>
+        <span class="menu-text" data-i18n="clearData">Clear All Data</span>
+      </button>
+      
+      <!-- 报告问题 -->
+      <a href="https://github.com/yourusername/yourrepo/issues/new" target="_blank" class="menu-item">
+        <span class="menu-icon">🐛</span>
+        <span class="menu-text" data-i18n="reportIssue">Report an Issue</span>
+      </a>
+
+      <!-- 提出新功能 -->
+      <a href="https://github.com/yourusername/yourrepo/issues/new" target="_blank" class="menu-item">
+        <span class="menu-icon">💡</span>
+        <span class="menu-text" data-i18n="proposeFeature">Propose a New Feature</span>
+      </a>
+    </div>
+  </div>
+
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="settings.js"></script>
+</body>
+</html> 
