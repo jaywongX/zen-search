@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/jaywong001011/ZenSearch/discussions
+    about: Please ask usage questions here. 
+templates:
+- title: Bug Report
+  filename: bug_report.md
+- title: Feature Request
+  filename: feature_request.md
