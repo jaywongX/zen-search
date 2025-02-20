@@ -8,7 +8,6 @@
 </head>
 
 <body>
-  <!-- 头部区域 -->
   <div class="header">
     <div class="header-left">
       <button class="icon-button" id="settingsBtn" title="Settings">⚙️</button>
@@ -22,7 +21,6 @@
     </div>
   </div>
 
-  <!-- 搜索和排序区域 -->
   <div class="search-sort-container">
     <div class="search-container">
       <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder">
@@ -36,10 +34,8 @@
     </div>
   </div>
 
-  <!-- 网站列表 -->
   <div class="site-list" id="siteList"></div>
 
-  <!-- 添加网站区域 -->
   <div class="add-site-container">
     <input type="text" id="urlInput" data-i18n-placeholder="urlPlaceholder">
     <select id="ratingSelect">
@@ -51,12 +47,10 @@
     </div>
     <button id="addSiteBtn" class="add-button">+</button>
   </div>
-  <!-- URL提示区域 -->
   <div class="url-hint-container">
     <p class="url-hint-text" data-i18n="urlHint"></p>
   </div>
 
-  <!-- 错误提示区域 -->
   <div id="errorContainer" class="error-container"></div>
 
   <script type="module" src="i18n.js"></script>

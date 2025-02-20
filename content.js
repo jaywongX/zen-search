@@ -1,6 +1,6 @@
 /**
- * 搜索引擎配置模块
- * 为不同的搜索引擎定义DOM选择器和特征
+ * Search Engine Configuration Module
+ * Define DOM selectors and characteristics for different search engines
  */
 const SEARCH_ENGINES = {
   google: {
@@ -144,8 +144,8 @@ const SEARCH_ENGINES = {
 };
 
 /**
- * 获取当前搜索引擎配置
- * @returns {object|undefined} 当前搜索引擎配置
+ * Get current search engine configuration
+ * @returns {object|undefined} Current search engine configuration
  */
 function getCurrentEngine() {
   const host = window.location.host;
@@ -153,9 +153,6 @@ function getCurrentEngine() {
   return engine;
 }
 
-/**
- * 处理快捷键消息
- */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'hideCurrentResult') {
     const hoveredElements = document.querySelectorAll(':hover');
@@ -269,28 +266,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
- * 检查URL是否匹配规则
- * @param {string} url - 要检查的URL
- * @param {string} pattern - 匹配模式
- * @returns {boolean} 是否匹配
+ * Check if URL matches the pattern
+ * @param {string} url - URL to check
+ * @param {string} pattern - Matching pattern
+ * @returns {boolean} Whether matches
  */
 function matchDomain(url, pattern) {
   if (!url || typeof url !== 'string') return false;
 
   try {
-    // 确保 URL 有协议
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
     }
 
-    // 解析 URL
     const urlObj = new URL(url);
     
-    // 解析匹配模式
     const [scheme, rest] = pattern.split('://');
     if (!rest) return false;
 
-    // 检查协议
     if (scheme !== '*' && scheme !== urlObj.protocol.slice(0, -1)) {
       return false;
     }
@@ -298,26 +291,20 @@ function matchDomain(url, pattern) {
     const [host, ...pathParts] = rest.split('/');
     const path = '/' + pathParts.join('/');
 
-    // 检查主机名
     if (host.startsWith('*.')) {
-      // 通配符匹配子域名
       const domainToMatch = host.slice(2);
-      // 允许匹配主域名或其子域名
       if (!urlObj.hostname.endsWith(domainToMatch)) {
         return false;
       }
     } else {
-      // 精确匹配主机名
       if (urlObj.hostname !== host) {
         return false;
       }
     }
-
-    // 检查路径
+    
     if (path === '/*') {
-      return true; // 匹配所有路径
+      return true;
     } else {
-      // 移除结尾的通配符进行前缀匹配
       const pathPrefix = path.endsWith('/*') ? path.slice(0, -1) : path;
       return urlObj.pathname.startsWith(pathPrefix);
     }
@@ -329,8 +316,8 @@ function matchDomain(url, pattern) {
 }
 
 /**
- * 显示Toast提示
- * @param {string} message - 要显示的消息
+ * Show Toast notification
+ * @param {string} message - Message to display
  */
 function showToast(message) {
   const toast = document.createElement('div');
@@ -344,9 +331,9 @@ function showToast(message) {
 }
 
 /**
- * 从搜索结果中提取URL
- * @param {HTMLElement} result - 搜索结果元素
- * @returns {string|null} 提取的URL
+ * Extract URL from search result
+ * @param {HTMLElement} result - Search result element
+ * @returns {string|null} Extracted URL
  */
 function extractUrl(result) {
   const engine = getCurrentEngine();
@@ -354,25 +341,22 @@ function extractUrl(result) {
 
   let url = null;
 
-  // 1. 使用引擎特定的链接选择器
   const link = result.querySelector(engine.linkSelector);
   if (link?.href) {
     url = link.href;
   }
 
-  // 2. 使用引擎特定的URL选择器
   if (!url && engine.urlSelector) {
     const urlElement = result.querySelector(engine.urlSelector);
     if (urlElement && urlElement.textContent) {
       url = urlElement.textContent
         .trim()
-        .split(/[›»]/) // 分割特殊字符
-        .map(part => part.trim()) // 清理每个部分
-        .filter(Boolean)[0]; // 取第一部分
+        .split(/[›»]/)
+        .map(part => part.trim())
+        .filter(Boolean)[0];
     }
   }
 
-  // 3. 查找标题中的链接
   if (!url) {
     const titleLink = result.querySelector('h1 a[href], h2 a[href], h3 a[href]');
     if (titleLink?.href) {
@@ -380,7 +364,6 @@ function extractUrl(result) {
     }
   }
 
-  // 4. 尝试任何非特殊的链接
   if (!url) {
     const anyLink = result.querySelector('a[href]:not([href^="#"]):not([href^="javascript"])');
     if (anyLink?.href) {
@@ -392,7 +375,7 @@ function extractUrl(result) {
 }
 
 /**
- * 处理搜索结果的主函数
+ * Main function for handling search results
  */
 async function filterResults() {
   if (window._filterTimeout) {
@@ -413,8 +396,8 @@ async function filterResults() {
 }
 
 /**
- * 处理搜索结果
- * @param {Element[]} results - 搜索结果元素数组
+ * Process search results
+ * @param {Element[]} results - Array of search result elements
  */
 async function processResults(results) {
   const { sites = [] } = await chrome.storage.local.get('sites');
@@ -443,8 +426,8 @@ async function processResults(results) {
 }
 
 /**
- * 处理无限滚动
- * 监听滚动容器，动态过滤新加载的结果
+ * Handle infinite scroll
+ * Monitor scroll container and dynamically filter newly loaded results
  */
 function handleInfiniteScroll() {
   const engine = getCurrentEngine();
@@ -453,54 +436,52 @@ function handleInfiniteScroll() {
   const container = document.querySelector(engine.containerSelector);
   if (!container) return;
 
-  // 使用防抖优化 MutationObserver 回调
+  // Optimize MutationObserver callbacks using anti-shake
   let debounceTimer;
   const observer = new MutationObserver((mutations) => {
-    // 检查是否有实际的内容变化
+    // Check for relevant content changes
     const hasRelevantChanges = mutations.some(mutation => {
-      // 只关注新增的节点
+      // Only focus on new nodes
       if (mutation.type !== 'childList' || mutation.addedNodes.length === 0) {
         return false;
       }
 
-      // 检查新增节点是否是搜索结果
+      // Check if the added nodes are search results
       return Array.from(mutation.addedNodes).some(node => {
         if (!(node instanceof Element)) return false;
 
-        // 检查是否是搜索结果元素
+        // Check if the added nodes are search result elements
         if (engine.resultSelector && node.matches(engine.resultSelector)) {
           return true;
         }
 
-        // 检查是否包含搜索结果
+        // Check if it contains search result elements
         return node.querySelector(engine.resultSelector);
       });
     });
 
     if (!hasRelevantChanges) return;
 
-    // 使用防抖处理频繁触发
+    // Use anti-shake to handle frequent triggers
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       filterResults();
     }, 100);
   });
 
-  // 配置观察选项
   observer.observe(container, {
-    childList: true,      // 观察子节点变化
-    subtree: true,        // 观察所有后代节点
-    attributes: false,    // 不观察属性变化
-    characterData: false  // 不观察文本内容变化
+    childList: true,
+    subtree: true,
+    attributes: false,
+    characterData: false
   });
 
 }
 
 /**
- * 观察页面变化
+ * Observe page changes
  */
 function observePageChanges() {
-  // 创建观察器实例
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
@@ -510,35 +491,28 @@ function observePageChanges() {
     }
   });
 
-  // 配置观察选项
   const config = {
-    childList: true,  // 观察子节点变化
-    subtree: true     // 观察所有后代节点
+    childList: true,
+    subtree: true
   };
 
-  // 开始观察
   observer.observe(document.body, config);
 
-  // 保存观察器实例以便清理
   window._searchObserver = observer;
 
-  // 初始检查
   filterResults();
 }
 
 /**
- * 监听 URL 变化
+ * Monitor URL changes
  */
 function observeUrlChanges() {
-  // 保存当前URL
   let lastUrl = window.location.href;
 
-  // 监听 popstate 事件（浏览器前进/后退）
   window.addEventListener('popstate', () => {
     setTimeout(filterResults, 100);
   });
 
-  // 监听 pushState 和 replaceState
   const originalPushState = history.pushState;
   const originalReplaceState = history.replaceState;
 
@@ -552,36 +526,28 @@ function observeUrlChanges() {
     setTimeout(filterResults, 100);
   };
 
-  // 监听 hashchange 事件
   window.addEventListener('hashchange', () => {
     setTimeout(filterResults, 100);
   });
 
-  // 定期检查 URL 变化
   setInterval(() => {
     const currentUrl = window.location.href;
     if (currentUrl !== lastUrl) {
       lastUrl = currentUrl;
       setTimeout(filterResults, 100);
     }
-  }, 1000); // 每1000ms检查一次
+  }, 1000);
 }
 
 /**
- * 初始化
+ * Initialize extension functionality
  */
 function initialize() {
-  // 获取当前搜索引擎配置
   const engine = getCurrentEngine();
   if (!engine) return;
 
-  // 初始化页面观察器
   observePageChanges();
-
-  // 监听 URL 变化
   observeUrlChanges();
-
-  // 处理无限滚动
   handleInfiniteScroll();
 }
 
@@ -592,7 +558,6 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-// 添加消息监听
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'updateResults') {
     filterResults();
@@ -602,7 +567,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.type === 'setLanguage') {
     chrome.storage.local.set({ language: message.language }, () => {
-      // 可能需要重新加载扩展
       chrome.runtime.reload();
     });
   }

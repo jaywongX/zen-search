@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "description": "Enhance your search experience with tranquility. Filter distractions, highlight trusted sources, and customize search results to find quality content faster. A mindful search companion.",
   "short_name": "ZenSearch",
-  "author": "jaywong001011",
+  "author": "jaywong",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -211,7 +211,7 @@
         "*://*.google.co.zw/search?*",
         "*://*.google.cat/search?*",
         "*://*.bing.com/search*",
-        "*://*.duckduckgo.com/search*",
+        "*://*.duckduckgo.com/?*",
         "*://*.yahoo.com/search*",
         "*://*.yahoo.co.jp/search*",
         "*://*.yandex.com/search*",
@@ -300,7 +300,6 @@
         "*://*.qwant.com/*"
       ],
       "css": [
-        "content-styles.css",
         "styles.css"
       ],
       "js": [

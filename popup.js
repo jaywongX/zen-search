@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const addSiteBtn = document.getElementById('addSiteBtn');
   const sortSelect = document.getElementById('sortSelect');
 
-  // 加载网站列表
   function loadSites() {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
@@ -18,12 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 渲染网站列表
+  // Render website list
   async function renderSites(sites = []) {
-    // 获取当前语言
+    // Get current language
     const currentLang = await getCurrentLanguage();
 
-    // 使用当前选择的排序方式
+    // Use the current selected sorting method
     const currentSortBy = sortSelect.value;
     const sortedSites = sortSites(sites, currentSortBy);
 
@@ -63,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // 添加URL编辑事件监听（使用事件委托）
+    // Add URL edit event listener (using event delegation)
     siteList.addEventListener('blur', (e) => {
       if (e.target.classList.contains('site-url-input')) {
         const oldUrl = e.target.closest('.site-item').dataset.url;
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
   }
 
-  // 删除网站
+  // Delete website
   function deleteSite(url) {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
@@ -91,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSites();
         showToast('siteDeleted', { url });
 
-        // 只更新当前活动标签页
+        // Update only the current active tab
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, {
@@ -103,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 搜索功能
+  // Search function
   searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const siteItems = siteList.querySelectorAll('.site-item');
@@ -114,28 +113,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 验证URL匹配模式
+  // Validate URL matching pattern
   function validateInput(input, isEdit = false) {
     if (!input) return false;
 
     try {
-      // 标准匹配模式的正则表达式
-      // 允许以下格式：
+      // Standard matching pattern regex
+      // Allow the following formats:
       // *://*.example.com/*
       // *://example.com/*
       // *://*.example.com/path/*
       // https://*.example.com/*
       const patternRegex = /^(\*|https?):\/\/(\*\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/.*)?\*$/;
       
-      // 检查是否是标准匹配模式
+      // Check if it is a standard matching pattern
       if (patternRegex.test(input)) {
         return true;
       }
 
-      // 如果是域名格式，自动转换为匹配模式
+      // If it is a domain format, automatically convert to matching pattern
       const domainRegex = /^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/;
       if (domainRegex.test(input)) {
-        // 在编辑模式下返回转换后的格式
+        // Return the converted format in edit mode
         return isEdit ? `*://*.${input}/*` : true;
       }
 
@@ -146,14 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 添加新网站
   function addSite(url, blocked = false, color = '#e6ffe6') {
-    // 转换为标准通配符格式
+    // Convert to standard wildcard format
     const domain = url.replace(/^\*:\/\//, '').replace(/\/\*$/, '');
     const parts = domain.split('.');
     const mainDomain = parts.length > 2
-      ? parts.slice(-2).join('.') // 例如 apps.apple.com -> apple.com
-      : domain;                   // 例如 example.com -> example.com
+      ? parts.slice(-2).join('.') // For example, apps.apple.com -> apple.com
+      : domain;                   // For example, example.com -> example.com
 
     const standardUrl = `*://*.${mainDomain}/*`;
 
@@ -174,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ sites }, () => {
         loadSites();
         showToast('siteAdded', { url });
-        // 通知内容脚本更新显示
+        // Notify content script to update display
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, {
@@ -186,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 显示Toast消息
+  // Show Toast message
   async function showToast(messageKey, params = {}) {
     const currentLang = await getCurrentLanguage();
     const message = translations[currentLang][messageKey].replace(
@@ -194,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       (match, key) => params[key] || match
     );
 
-    // 直接在 popup 中显示提示
+    // Show toast directly in popup
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
@@ -202,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => toast.remove(), 2000);
   }
 
-  // 绑定添加按钮事件
+  // Bind add button event
   addSiteBtn.addEventListener('click', () => {
     const url = urlInput.value.trim();
     const blocked = ratingSelect.value === 'blocked';
@@ -213,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   });
 
-  // 绑定回车键添加
+  // Bind Enter key to add
   urlInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       const url = urlInput.value.trim();
@@ -226,13 +224,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   });
 
-  // URL输入框验证
+  // URL input box validation
   urlInput.addEventListener('input', () => {
     const isValid = validateInput(urlInput.value.trim());
     urlInput.classList.toggle('invalid', !isValid);
   });
 
-  // 排序选择器事件监听
+  // Sort selector event listener
   sortSelect.addEventListener('change', (e) => {
     chrome.storage.local.get(['sites'], ({ sites = [] }) => {
       const sortedSites = sortSites(sites, e.target.value);
@@ -240,28 +238,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 排序网站列表
+  // Sort website list
   function sortSites(sites, sortBy) {
     return [...sites].sort((a, b) => {
-      // 首先按置顶状态排序
+      // First sort by top status
       if (a.top !== b.top) {
         return b.top ? 1 : -1;
       }
 
       switch (sortBy) {
         case 'url':
-          // 按 URL 字母顺序排序
+          // Sort by URL alphabetically
           return a.url.localeCompare(b.url);
 
         case 'blocked':
-          // 先按屏蔽状态排序，相同状态下按URL排序
+          // First sort by blocked status, then by URL
           if (a.blocked !== b.blocked) {
             return b.blocked ? -1 : 1;
           }
           return a.url.localeCompare(b.url);
 
         case 'color':
-          // 先按是否有颜色排序，然后按颜色值排序，最后按URL排序
+          // First sort by color, then by color value, then by URL
           if (a.color !== b.color) {
             if (!a.color) return 1;
             if (!b.color) return -1;
@@ -275,14 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 切换设置菜单显示
+  // Switch settings menu display
   settingsBtn.addEventListener('click', () => {
     window.location.href = 'settings.html';
   });
 
-  // 添加更新URL的函数
+  // Add update URL function
   function updateSiteUrl(oldUrl, newUrl) {
-    // 验证新URL（使用isEdit=true）
+    // Validate new URL (using isEdit=true)
     if (!validateInput(newUrl, true)) {
       showToast('invalidUrl');
       return;
@@ -293,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const siteIndex = sites.findIndex(site => site.url === oldUrl);
 
       if (siteIndex !== -1) {
-        // 转换为标准通配符格式，但保留子域名
+        // Convert to standard wildcard format, but keep subdomains
         const standardUrl = newUrl.match(/^\*:\/\//)
           ? newUrl
           : `*://${newUrl.replace(/^www\./, '')}/*`;
@@ -302,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.local.set({ sites }, () => {
           loadSites();
           showToast('urlUpdated', { oldUrl, newUrl });
-          // 通知内容脚本更新显示
+          // Notify content script to update display
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
               chrome.tabs.sendMessage(tabs[0].id, {
@@ -315,23 +313,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 语言切换功能
+  // Language switch function
   async function initializeI18n() {
     const langSelect = document.getElementById('langSelect');
     const currentLang = await getCurrentLanguage();
 
-    // 设置当前语言
+    // Set current language
     langSelect.value = currentLang;
     await updateLanguage(currentLang);
 
-    // 语言切换事件
+    // Language switch event
     langSelect.addEventListener('change', async (e) => {
       const newLang = e.target.value;
       await updateLanguage(newLang);
     });
   }
 
-  // 颜色选择器事件
+  // Color picker event
   siteList.addEventListener('change', (e) => {
     if (e.target.matches('.color-picker')) {
       const siteItem = e.target.closest('.site-item');
@@ -340,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 更新站点属性
+  // Update site attributes
   function updateSite(url, updates) {
     chrome.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
@@ -350,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sites[siteIndex] = { ...sites[siteIndex], ...updates };
         chrome.storage.local.set({ sites }, () => {
           loadSites();
-          // 通知内容脚本更新显示
+          // Notify content script to update display
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
               chrome.tabs.sendMessage(tabs[0].id, {
@@ -363,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 初始加载
+  // Initial load
   loadSites();
   initializeI18n();
 }); 
