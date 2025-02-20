@@ -7,26 +7,26 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
-  <div class="header">
-    <div class="header-left">
-      <button class="icon-button" id="settingsBtn" title="Settings">⚙️</button>
+<body class="zen-popup-body">
+  <div class="zen-header">
+    <div class="zen-header-left">
+      <button class="zen-icon-button" id="settingsBtn" title="Settings">⚙️</button>
     </div>
-    <h1 class="header-title" data-i18n="extName"></h1>
-    <div class="header-lang">
-      <select id="langSelect" class="lang-select">
+    <h1 class="zen-header-title" data-i18n="extName"></h1>
+    <div class="zen-header-lang">
+      <select id="langSelect" class="zen-lang-select">
         <option value="en">English</option>
         <option value="zh_CN">中文</option>
       </select>
     </div>
   </div>
 
-  <div class="search-sort-container">
-    <div class="search-container">
+  <div class="zen-search-zen-sort-container">
+    <div class="zen-search-container">
       <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder">
     </div>
-    <div class="sort-container">
-      <select id="sortSelect" class="sort-select">
+    <div class="zen-sort-container">
+      <select id="sortSelect" class="zen-sort-select">
         <option value="url" data-i18n="sortByUrl">Sort by URL</option>
         <option value="blocked" data-i18n="sortByBlocked">Sort by Blocked</option>
         <option value="color" data-i18n="sortByColor">Sort by Color</option>
@@ -34,24 +34,24 @@
     </div>
   </div>
 
-  <div class="site-list" id="siteList"></div>
+  <div class="zen-site-list" id="siteList"></div>
 
-  <div class="add-site-container">
+  <div class="zen-add-site-container">
     <input type="text" id="urlInput" data-i18n-placeholder="urlPlaceholder">
     <select id="ratingSelect">
       <option value="show">👁️</option>
       <option value="blocked">🚫</option>
     </select>
-    <div class="color-picker-container">
-      <input type="color" id="colorSelect" class="color-picker" value="#e6ffe6" title="Highlight Color">
+    <div class="zen-color-picker-container">
+      <input type="color" id="colorSelect" class="zen-color-picker" value="#e6ffe6" title="Highlight Color">
     </div>
-    <button id="addSiteBtn" class="add-button">+</button>
+    <button id="addSiteBtn" class="zen-add-button">+</button>
   </div>
-  <div class="url-hint-container">
-    <p class="url-hint-text" data-i18n="urlHint"></p>
+  <div class="zen-url-hint-container">
+    <p class="zen-url-hint-text" data-i18n="urlHint"></p>
   </div>
 
-  <div id="errorContainer" class="error-container"></div>
+  <div id="errorContainer" class="zen-error-container"></div>
 
   <script type="module" src="i18n.js"></script>
   <script type="module" src="popup.js"></script>

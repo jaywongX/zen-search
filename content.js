@@ -93,10 +93,10 @@ const SEARCH_ENGINES = {
     urlSelector: '.result__source--domain'
   },
   ask: {
-    host: 'www.ask.com',
-    resultSelector: '.result[data-testid="result"]',
+    host: 'ask.com',
+    resultSelector: 'div.result[data-testid="result"]',
     containerSelector: '.results',
-    linkSelector: '.result-title-link',
+    linkSelector: 'a.result-title-link',
     urlSelector: '.result-url'
   },
   aol: {
@@ -108,7 +108,7 @@ const SEARCH_ENGINES = {
   },
   naver: {
     host: 'search.naver.com',
-    resultSelector: '.lst_total',
+    resultSelector: '.lst_total > .bx',
     containerSelector: '.api_subject_bx',
     linkSelector: '.total_tit .link_tit',
     urlSelector: '.source_box .txt'
@@ -390,7 +390,6 @@ async function filterResults() {
     results = document.querySelectorAll(engine.resultSelector);
     if (results.length === 0) return;
 
-    // 处理找到的结果
     await processResults(results);
   }, 100);
 }
@@ -546,9 +545,20 @@ function initialize() {
   const engine = getCurrentEngine();
   if (!engine) return;
 
-  observePageChanges();
-  observeUrlChanges();
-  handleInfiniteScroll();
+  // 如果页面还没加载完成，等待加载完成后再执行
+  if (document.readyState !== 'complete') {
+    window.addEventListener('load', () => {
+      filterResults();
+      observePageChanges();
+      observeUrlChanges();
+      handleInfiniteScroll();
+    }, { once: true });
+  } else {
+    filterResults();
+    observePageChanges();
+    observeUrlChanges();
+    handleInfiniteScroll();
+  }
 }
 
 window.addEventListener('beforeunload', () => {

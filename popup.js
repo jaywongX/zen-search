@@ -27,45 +27,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortedSites = sortSites(sites, currentSortBy);
 
     siteList.innerHTML = sortedSites.map(site => `
-      <div class="site-item" data-url="${site.url}">
-        <input type="text" class="site-url-input" value="${site.url}">
-        <div class="site-actions">
-          <button class="block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? translations[currentLang].unblocked : translations[currentLang].blocked}">
+      <div class="zen-site-item" data-url="${site.url}">
+        <input type="text" class="zen-site-url-input" value="${site.url}">
+        <div class="zen-site-actions">
+          <button class="zen-block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? translations[currentLang].unblocked : translations[currentLang].blocked}">
             ${site.blocked ? '🚫' : '👁️'}
           </button>
-          <div class="color-picker-container">
-            <input type="color" class="color-picker" value="${site.color}" title="${translations[currentLang].highlightColor}"
+          <div class="zen-color-picker-container">
+            <input type="color" class="zen-color-picker" value="${site.color}" title="${translations[currentLang].highlightColor}"
               ${site.blocked ? 'disabled' : ''}>
           </div>
-          <button class="pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[currentLang].untop : translations[currentLang].top}">
+          <button class="zen-pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[currentLang].untop : translations[currentLang].top}">
             ${site.top ? '📌' : '📍'}
           </button>
-          <button class="delete-btn" title="${translations[currentLang].delete}">-</button>
+          <button class="zen-delete-btn" title="${translations[currentLang].delete}">-</button>
         </div>
       </div>
     `).join('');
 
     siteList.addEventListener('click', (e) => {
-      const siteItem = e.target.closest('.site-item');
+      const siteItem = e.target.closest('.zen-site-item');
       if (!siteItem) return;
 
       const url = siteItem.dataset.url;
 
-      if (e.target.matches('.block-btn')) {
+      if (e.target.matches('.zen-block-btn')) {
         const isBlocked = e.target.classList.contains('blocked');
         updateSite(url, { blocked: !isBlocked });
-      } else if (e.target.matches('.pin-btn')) {
+      } else if (e.target.matches('.zen-pin-btn')) {
         const isPinned = e.target.classList.contains('pinned');
         updateSite(url, { top: !isPinned });
-      } else if (e.target.matches('.delete-btn')) {
+      } else if (e.target.matches('.zen-delete-btn')) {
         deleteSite(url);
       }
     });
 
     // Add URL edit event listener (using event delegation)
     siteList.addEventListener('blur', (e) => {
-      if (e.target.classList.contains('site-url-input')) {
-        const oldUrl = e.target.closest('.site-item').dataset.url;
+      if (e.target.classList.contains('zen-site-url-input')) {
+        const oldUrl = e.target.closest('.zen-site-item').dataset.url;
         const newUrl = e.target.value.trim();
 
         if (oldUrl === newUrl) return;
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Search function
   searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
-    const siteItems = siteList.querySelectorAll('.site-item');
+    const siteItems = siteList.querySelectorAll('.zen-site-item');
 
     siteItems.forEach(item => {
       const url = item.dataset.url.toLowerCase();
@@ -331,8 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Color picker event
   siteList.addEventListener('change', (e) => {
-    if (e.target.matches('.color-picker')) {
-      const siteItem = e.target.closest('.site-item');
+    if (e.target.matches('.zen-color-picker')) {
+      const siteItem = e.target.closest('.zen-site-item');
       const url = siteItem.dataset.url;
       updateSite(url, { color: e.target.value });
     }
