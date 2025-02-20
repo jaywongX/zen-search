@@ -605,28 +605,6 @@ body {
   color: #f44336;
 }
 
-/* Toast提示 */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  z-index: 1000;
-  animation: toast-in-out 2s ease;
-}
-
-@keyframes toast-in-out {
-  0% { opacity: 0; transform: translate(-50%, 20px); }
-  10% { opacity: 1; transform: translate(-50%, 0); }
-  90% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -20px); }
-}
-
 /* 隐藏搜索结果 */
 .search-result.result-blocked {
   display: none !important;
@@ -702,31 +680,6 @@ body {
 /* 屏蔽按钮悬停效果 */
 .action-btn.block:hover {
   color: #f44336;  /* 红色 */
-}
-
-/**
- * Toast提示样式
- */
-.toast {
-  position: fixed;  /* 固定定位 */
-  bottom: 24px;    /* 底部距离 */
-  left: 50%;       /* 水平居中 */
-  transform: translateX(-50%);  /* 精确水平居中 */
-  background: rgba(0, 0, 0, 0.8);  /* 深色半透明背景 */
-  color: white;    /* 白色文字 */
-  padding: 8px 16px;  /* 内边距 */
-  border-radius: 20px;  /* 圆角 */
-  font-size: 14px;  /* 字体大小 */
-  z-index: 1000;   /* 确保在最上层 */
-  animation: toast-in-out 2s ease;  /* 动画效果 */
-}
-
-/* Toast动画关键帧 */
-@keyframes toast-in-out {
-  0% { opacity: 0; transform: translate(-50%, 20px); }  /* 初始状态 */
-  10% { opacity: 1; transform: translate(-50%, 0); }    /* 显示状态 */
-  90% { opacity: 1; transform: translate(-50%, 0); }    /* 保持显示 */
-  100% { opacity: 0; transform: translate(-50%, -20px); }  /* 消失状态 */
 }
 
 /* URL输入框样式 */
@@ -928,59 +881,6 @@ body {
   background: #fff1f0;
 }
 
-/* Toast 提示样式 */
-.sers-toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translate(-50%, 100px);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 14px;
-  z-index: 10000;
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.sers-toast.show {
-  transform: translate(-50%, 0);
-  opacity: 1;
-}
-
-/* 确保高亮样式生效 */
-.g:not(.g-blk)[style*="background-color"] {
-  background-color: inherit !important;
-}
-
-/* 确保屏蔽样式生效 */
-.result-blocked {
-  display: none !important;
-}
-
-/* 输入框样式 */
-.url-input {
-  font-family: monospace;
-  font-size: 14px;
-}
-
-/* 添加输入框示例提示样式 */
-.url-input::placeholder {
-  color: #999;
-  font-style: italic;
-}
-
-/* 只保留核心功能样式 */
-.result-highlighted {
-  background-color: var(--highlight-color, #e6ffe6) !important;
-  border-radius: 4px !important;
-}
-
-.result-blocked {
-  display: none !important;
-}
-
 /* 搜索和排序控件样式 */
 .search-controls {
   display: flex;
@@ -1149,4 +1049,84 @@ body {
 
 .menu-text {
   font-size: 14px;
+}
+
+/* 确认对话框样式 */
+.zen-confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483647;  /* 最大的 z-index 值 */
+}
+
+.zen-confirm-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+  text-align: center;
+}
+
+.zen-confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.zen-confirm-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.zen-confirm-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.zen-confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.zen-confirm-yes,
+.zen-confirm-no {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 80px;
+  font-size: 14px;
+}
+
+.zen-confirm-yes {
+  background: #f44336;
+  color: white;
+  font-weight: bold;
+}
+
+.zen-confirm-no {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.zen-confirm-yes:hover {
+  background: #d32f2f;
+}
+
+.zen-confirm-no:hover {
+  background: #bdbdbd;
 }

@@ -158,13 +158,113 @@ function getCurrentEngine() {
  */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'hideCurrentResult') {
-    const hoveredResult = document.querySelector(':hover');
-    const engine = getCurrentEngine();
-    const resultElement = hoveredResult.closest(engine.resultSelector);
+    const hoveredElements = document.querySelectorAll(':hover');
+    const hoveredResult = hoveredElements[hoveredElements.length - 1];
 
-    if (resultElement) {
-      resultElement.style.display = 'none';
+    if (!hoveredResult) {
+      return;
     }
+    
+    const engine = getCurrentEngine();
+    if (!engine) {
+      return;
+    }
+
+    const resultElement = hoveredResult.closest(engine.resultSelector);
+    if (!resultElement) {
+      return;
+    }
+
+    const url = extractUrl(resultElement, engine);
+    if (!url) {
+      return;
+    }
+    
+    const domain = new URL(url).hostname;
+    
+    chrome.runtime.sendMessage(
+      { type: 'getTranslation', key: 'confirmHide', params: { domain } },
+      (confirmText) => {
+        chrome.runtime.sendMessage(
+          { type: 'getTranslation', key: 'confirm' },
+          (confirmBtnText) => {
+            chrome.runtime.sendMessage(
+              { type: 'getTranslation', key: 'cancel' },
+              (cancelBtnText) => {
+                const confirmDialog = document.createElement('div');
+                confirmDialog.className = 'zen-confirm-dialog';
+                confirmDialog.innerHTML = `
+                  <div class="zen-confirm-content">
+                    <div class="zen-confirm-header">
+                      <img src="${chrome.runtime.getURL('icons/icon128.png')}" class="zen-confirm-icon" alt="ZenSearch">
+                      <h3 class="zen-confirm-title">ZenSearch</h3>
+                    </div>
+                    <p>${confirmText}</p>
+                    <div class="zen-confirm-buttons">
+                      <button class="zen-confirm-yes">${confirmBtnText}</button>
+                      <button class="zen-confirm-no">${cancelBtnText}</button>
+                    </div>
+                  </div>
+                `;
+                
+                document.body.appendChild(confirmDialog);
+                
+                confirmDialog.addEventListener('click', (e) => {
+                  if (e.target === confirmDialog) {
+                    confirmDialog.remove();
+                  }
+                });
+                
+                confirmDialog.querySelector('.zen-confirm-yes').addEventListener('click', () => {
+                  
+                  resultElement.style.display = 'none';
+                  
+                  const wildcardDomain = `*://*.${domain}/*`;
+                  
+                  chrome.storage.local.get(['sites', 'language'], (data) => {
+                    const sites = data.sites || [];
+                    const lang = data.language || 'en';
+                    
+                    if (!sites.some(site => site.url === wildcardDomain)) {
+                      sites.push({
+                        url: wildcardDomain,
+                        blocked: true,
+                        color: '#e6ffe6',
+                        top: false
+                      });
+                      
+                      chrome.storage.local.set({ sites }, () => {
+                        chrome.runtime.sendMessage({ type: 'updateSites' });
+                        
+                        chrome.runtime.sendMessage(
+                          { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
+                          (message) => {
+                            showToast(message);
+                          }
+                        );
+                      });
+                    } else {
+                      chrome.runtime.sendMessage(
+                        { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
+                        (message) => {
+                          showToast(message);
+                        }
+                      );
+                    }
+                  });
+                  
+                  confirmDialog.remove();
+                });
+                
+                confirmDialog.querySelector('.zen-confirm-no').addEventListener('click', () => {
+                  confirmDialog.remove();
+                });
+              }
+            );
+          }
+        );
+      }
+    );
   }
 });
 
@@ -485,16 +585,12 @@ function initialize() {
   handleInfiniteScroll();
 }
 
-// 清理函数
-function cleanup() {
+window.addEventListener('beforeunload', () => {
   if (window._searchObserver) {
     window._searchObserver.disconnect();
     window._searchObserver = null;
   }
-}
-
-// 添加清理监听
-window.addEventListener('beforeunload', cleanup);
+});
 
 // 添加消息监听
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

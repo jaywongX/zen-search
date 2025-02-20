@@ -33,7 +33,10 @@ const translations = {
     delete: "Delete",
     back: "Back",
     reportIssue: "Report an Issue",
-    proposeFeature: "Propose a New Feature"
+    proposeFeature: "Propose a New Feature",
+    confirmHide: "Hide search results from {domain}?",
+    confirm: "Confirm",
+    cancel: "Cancel"
   },
   zh_CN: {
     extName: "ZenSearch - Search in Peace",
@@ -68,7 +71,10 @@ const translations = {
     delete: "删除",
     back: "返回",
     reportIssue: "报告问题",
-    proposeFeature: "提出新功能"
+    proposeFeature: "提出新功能",
+    confirmHide: "是否隐藏来自 {domain} 的搜索结果？",
+    confirm: "确认",
+    cancel: "取消"
   }
 };
 

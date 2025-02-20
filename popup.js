@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const ratingSelect = document.getElementById('ratingSelect');
   const addSiteBtn = document.getElementById('addSiteBtn');
   const sortSelect = document.getElementById('sortSelect');
-  const defaultColor = '#e6ffe6';
-  const defaultLang = 'en'
 
   // 加载网站列表
   function loadSites() {
@@ -331,26 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const newLang = e.target.value;
       await updateLanguage(newLang);
     });
-  }
-
-  function updateColorPreview(color) {
-    const preview = document.querySelector('.color-preview');
-    preview.style.backgroundColor = color;
-
-    // 计算文字颜色（深色背景用白字，浅色背景用黑字）
-    const rgb = hexToRgb(color);
-    const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-    preview.style.color = brightness > 128 ? '#000' : '#fff';
-  }
-
-  // 辅助函数：将十六进制颜色转换为RGB
-  function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
   }
 
   // 颜色选择器事件

@@ -10,6 +10,21 @@ import { translations } from './i18n.js';
  * 处理跨域通信和数据请求
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  
+  if (message.type === 'getTranslation') {
+    const { key, params } = message;
+    chrome.storage.local.get(['language'], ({ language = 'en' }) => {
+      let translatedText = translations[language]?.[key] || translations.en[key];
+      
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          translatedText = translatedText.replace(`{${key}}`, value);
+        });
+      }
+      sendResponse(translatedText);
+    });
+    return true;
+  }
 
   // 更新右键菜单文本
   if (message.type === 'updateContextMenus') {
@@ -31,12 +46,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  */
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'hide-current-result') {
-    // 获取当前活动标签页
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
-        // 向内容脚本发送隐藏当前结果的命令
         chrome.tabs.sendMessage(tabs[0].id, {
-          type: 'hideCurrentResult'
+          action: 'hideCurrentResult'
         });
       }
     });
