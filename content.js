@@ -222,7 +222,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     const sites = data.sites || [];
                     const lang = data.language || 'en';
                     
-                    if (!sites.some(site => site.url === wildcardDomain)) {
+                    const existingSite = sites.find(site => site.url === wildcardDomain);
+                    
+                    if (existingSite) {
+                      existingSite.blocked = true;
+                      chrome.storage.local.set({ sites }, () => {
+                        chrome.runtime.sendMessage({ type: 'updateSites' });
+                        chrome.runtime.sendMessage(
+                          { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
+                          (message) => {
+                            showToast(message);
+                          }
+                        );
+                      });
+                    } else {
                       sites.push({
                         url: wildcardDomain,
                         blocked: true,
@@ -232,7 +245,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                       
                       chrome.storage.local.set({ sites }, () => {
                         chrome.runtime.sendMessage({ type: 'updateSites' });
-                        
                         chrome.runtime.sendMessage(
                           { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
                           (message) => {
@@ -240,13 +252,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                           }
                         );
                       });
-                    } else {
-                      chrome.runtime.sendMessage(
-                        { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
-                        (message) => {
-                          showToast(message);
-                        }
-                      );
                     }
                   });
                   
@@ -399,9 +404,6 @@ async function filterResults() {
  * @param {Element[]} results - Array of search result elements
  */
 async function processResults(results) {
-  const { sites = [] } = await chrome.storage.local.get('sites');
-  if (sites.length === 0) return;
-
   for (const result of results) {
     // 重置样式
     result.style.removeProperty('display');
@@ -410,6 +412,7 @@ async function processResults(results) {
     const url = extractUrl(result);
     if (!url) continue;
 
+    const { sites = [] } = await chrome.storage.local.get('sites');
     // 匹配规则
     for (const site of sites) {
       if (matchDomain(url, site.url)) {

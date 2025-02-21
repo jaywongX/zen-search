@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions & Discussions
-    url: https://github.com/jaywong001011/ZenSearch/discussions
+    url: https://github.com/jaywongX/zen-search/discussions
     about: Please ask usage questions here. 
 templates:
 - title: Bug Report

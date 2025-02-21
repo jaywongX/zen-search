@@ -262,6 +262,8 @@
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #e9ecef;
+  position: relative;
+  height: 40px;
 }
 
 .zen-settings-content {
@@ -390,9 +392,9 @@
 
 /* Settings page styles */
 .zen-settings-page {
-  width: 400px;
+  width: 380px;
   padding: 0;
-  background: #f8f9fa;
+  background: #ffffff;
 }
 
 .zen-back-button {
@@ -403,6 +405,7 @@
   cursor: pointer;
   font-size: 14px;
   color: #333;
+  z-index: 1;
 }
 
 .zen-back-icon {
@@ -414,6 +417,10 @@
   font-weight: 500;
   color: #2c3e50;
   margin: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .zen-settings-content {
@@ -454,18 +461,18 @@
   font-size: 14px;
 }
 
-/* Confirmation dialog styles */
+/* Modal Dialog Styles */
 .zen-confirm-dialog {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2147483647;  /* Maximum z-index value */
+  z-index: 999999;
 }
 
 .zen-confirm-content {
@@ -474,60 +481,65 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   min-width: 300px;
-  text-align: center;
+  max-width: 90%;
+  position: relative;
 }
 
 .zen-confirm-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
 }
 
 .zen-confirm-icon {
   width: 24px;
   height: 24px;
+  margin-right: 10px;
 }
 
 .zen-confirm-title {
-  font-size: 16px;
-  font-weight: 300;
-  color: #2c3e50;
   margin: 0;
+  font-size: 18px;
 }
 
 .zen-confirm-buttons {
   display: flex;
   justify-content: flex-end;
+  margin-top: 20px;
   gap: 10px;
-  margin-top: 15px;
 }
 
 .zen-confirm-yes,
 .zen-confirm-no {
-  padding: 6px 12px;
-  border: none;
+  padding: 8px 16px;
   border-radius: 4px;
+  border: none;
   cursor: pointer;
-  min-width: 80px;
   font-size: 14px;
 }
 
 .zen-confirm-yes {
-  background: #f44336;
+  background-color: #4CAF50;
   color: white;
-  font-weight: bold;
 }
 
 .zen-confirm-no {
-  background: #e0e0e0;
-  color: #333;
+  background-color: #f44336;
+  color: white;
 }
 
+/* Add hover effects */
 .zen-confirm-yes:hover {
-  background: #d32f2f;
+  background-color: #45a049;
 }
 
 .zen-confirm-no:hover {
-  background: #bdbdbd;
+  background-color: #da190b;
+}
+
+/* Ensure the dialog content is properly spaced */
+.zen-confirm-content p {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
 }

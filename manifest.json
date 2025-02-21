@@ -299,6 +299,9 @@
         "*://*.search.fredix.xyz/search*",
         "*://*.qwant.com/*"
       ],
+      "css": [
+        "styles.css"
+      ],
       "js": [
         "content.js"
       ]
