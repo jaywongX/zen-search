@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "description": "Enhance your search experience with tranquility. Filter distractions, highlight trusted sources, and customize search results to find quality content faster. A mindful search companion.",
   "short_name": "ZenSearch",
-  "author": "jaywong",
+  "author": "Jay Wong",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
