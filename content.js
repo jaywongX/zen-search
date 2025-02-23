@@ -1,3 +1,4 @@
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 /**
  * Search Engine Configuration Module
  * Define DOM selectors and characteristics for different search engines
@@ -153,7 +154,7 @@ function getCurrentEngine() {
   return engine;
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'hideCurrentResult') {
     const hoveredElements = document.querySelectorAll(':hover');
     const hoveredResult = hoveredElements[hoveredElements.length - 1];
@@ -179,13 +180,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     const domain = new URL(url).hostname;
     
-    chrome.runtime.sendMessage(
+    browserAPI.runtime.sendMessage(
       { type: 'getTranslation', key: 'confirmHide', params: { domain } },
       (confirmText) => {
-        chrome.runtime.sendMessage(
+        browserAPI.runtime.sendMessage(
           { type: 'getTranslation', key: 'confirm' },
           (confirmBtnText) => {
-            chrome.runtime.sendMessage(
+            browserAPI.runtime.sendMessage(
               { type: 'getTranslation', key: 'cancel' },
               (cancelBtnText) => {
                 const confirmDialog = document.createElement('div');
@@ -193,7 +194,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 confirmDialog.innerHTML = `
                   <div class="zen-confirm-content">
                     <div class="zen-confirm-header">
-                      <img src="${chrome.runtime.getURL('icons/icon128.png')}" class="zen-confirm-icon" alt="ZenSearch">
+                      <img src="${browserAPI.runtime.getURL('icons/icon128.png')}" class="zen-confirm-icon" alt="ZenSearch">
                       <h3 class="zen-confirm-title">ZenSearch</h3>
                     </div>
                     <p>${confirmText}</p>
@@ -218,7 +219,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   
                   const wildcardDomain = `*://*.${domain}/*`;
                   
-                  chrome.storage.local.get(['sites', 'language'], (data) => {
+                  browserAPI.storage.local.get(['sites', 'language'], (data) => {
                     const sites = data.sites || [];
                     const lang = data.language || 'en';
                     
@@ -226,9 +227,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     
                     if (existingSite) {
                       existingSite.blocked = true;
-                      chrome.storage.local.set({ sites }, () => {
-                        chrome.runtime.sendMessage({ type: 'updateSites' });
-                        chrome.runtime.sendMessage(
+                      browserAPI.storage.local.set({ sites }, () => {
+                        browserAPI.runtime.sendMessage({ type: 'updateSites' });
+                        browserAPI.runtime.sendMessage(
                           { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
                           (message) => {
                             showToast(message);
@@ -243,9 +244,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         top: false
                       });
                       
-                      chrome.storage.local.set({ sites }, () => {
-                        chrome.runtime.sendMessage({ type: 'updateSites' });
-                        chrome.runtime.sendMessage(
+                      browserAPI.storage.local.set({ sites }, () => {
+                        browserAPI.runtime.sendMessage({ type: 'updateSites' });
+                        browserAPI.runtime.sendMessage(
                           { type: 'getTranslation', key: 'siteBlocked', params: { domain } },
                           (message) => {
                             showToast(message);
@@ -412,7 +413,7 @@ async function processResults(results) {
     const url = extractUrl(result);
     if (!url) continue;
 
-    const { sites = [] } = await chrome.storage.local.get('sites');
+    const { sites = [] } = await browserAPI.storage.local.get('sites');
     // 匹配规则
     for (const site of sites) {
       if (matchDomain(url, site.url)) {
@@ -570,7 +571,7 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'updateResults') {
     filterResults();
   }
@@ -578,8 +579,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     showToast(message.message);
   }
   if (message.type === 'setLanguage') {
-    chrome.storage.local.set({ language: message.language }, () => {
-      chrome.runtime.reload();
+    browserAPI.storage.local.set({ language: message.language }, () => {
+      browserAPI.runtime.reload();
     });
   }
 });

@@ -1,4 +1,5 @@
 import { updateLanguage, getCurrentLanguage, getMessage, translations } from './i18n.js';
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -11,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sortSelect = document.getElementById('sortSelect');
 
   function loadSites() {
-    chrome.storage.local.get(['sites'], (data) => {
+    browserAPI.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       renderSites(sites).catch(console.error);
     });
@@ -34,8 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ${site.blocked ? '🚫' : '👁️'}
           </button>
           <div class="zen-color-picker-container">
-            <input type="color" class="zen-color-picker" value="${site.color}" title="${translations[currentLang].highlightColor}"
-              ${site.blocked ? 'disabled' : ''}>
+            <div class="pickr-button" 
+              data-color="${site.color}"
+              data-url="${site.url}"
+              ${site.blocked ? 'data-disabled="true"' : ''}></div>
           </div>
           <button class="zen-pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[currentLang].untop : translations[currentLang].top}">
             ${site.top ? '📌' : '📍'}
@@ -79,21 +82,90 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSiteUrl(oldUrl, newUrl);
       }
     }, true);
+
+    // Add color picker event listener
+    siteList.addEventListener('click', (e) => {
+      if (e.target.matches('.zen-color-btn') && !e.target.disabled) {
+        const siteItem = e.target.closest('.zen-site-item');
+        const url = siteItem.dataset.url;
+        const currentColor = e.target.dataset.color;
+        
+        // Remove any existing color panel
+        const existingPanel = document.querySelector('.color-panel');
+        if (existingPanel) existingPanel.remove();
+        
+        // Create color panel
+        const panel = createColorPanel(url, currentColor, e.target);
+        document.body.appendChild(panel);
+        
+        // Position the panel
+        const rect = e.target.getBoundingClientRect();
+        panel.style.left = `${rect.left}px`;
+        panel.style.top = `${rect.bottom + 5}px`;
+        
+        // Close panel when clicking outside
+        const closePanel = (event) => {
+          if (!panel.contains(event.target) && !e.target.contains(event.target)) {
+            panel.remove();
+            document.removeEventListener('click', closePanel);
+          }
+        };
+        
+        // Delay adding the click listener to prevent immediate closing
+        setTimeout(() => {
+          document.addEventListener('click', closePanel);
+        }, 0);
+      }
+    });
+
+    // Initialize Pickr for each color button
+    document.querySelectorAll('.pickr-button').forEach(el => {
+      if (el.dataset.disabled === 'true') return;
+      
+      const pickr = Pickr.create({
+        el,
+        theme: 'classic',
+        default: el.dataset.color,
+        
+        swatches: [
+          '#e6ffe6', '#ffe6e6', '#e6e6ff', '#ffffe6',
+          '#e6ffff', '#ffe6ff', '#f0f0f0', '#ffffff'
+        ],
+        
+        components: {
+          preview: true,
+          opacity: true,
+          hue: true,
+          interaction: {
+            hex: true,
+            rgba: true,
+            input: true,
+            save: true
+          }
+        }
+      });
+      
+      pickr.on('save', (color) => {
+        const hexColor = color.toHEXA().toString();
+        updateSite(el.dataset.url, { color: hexColor });
+        pickr.hide();
+      });
+    });
   }
 
   // Delete website
   function deleteSite(url) {
-    chrome.storage.local.get(['sites'], (data) => {
+    browserAPI.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const newSites = sites.filter(site => site.url !== url);
-      chrome.storage.local.set({ sites: newSites }, () => {
+      browserAPI.storage.local.set({ sites: newSites }, () => {
         loadSites();
         showToast('siteDeleted', { url });
 
         // Update only the current active tab
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        browserAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
-            chrome.tabs.sendMessage(tabs[0].id, {
+            browserAPI.tabs.sendMessage(tabs[0].id, {
               type: 'updateResults'
             });
           }
@@ -125,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // *://*.example.com/path/*
       // https://*.example.com/*
       const patternRegex = /^(\*|https?):\/\/(\*\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/.*)?\*$/;
-      
+
       // Check if it is a standard matching pattern
       if (patternRegex.test(input)) {
         return true;
@@ -155,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const standardUrl = `*://*.${mainDomain}/*`;
 
-    chrome.storage.local.get(['sites'], (data) => {
+    browserAPI.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       if (sites.some(site => site.url === standardUrl)) {
         showToast('invalidUrl');
@@ -169,13 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
         top: false
       });
 
-      chrome.storage.local.set({ sites }, () => {
+      browserAPI.storage.local.set({ sites }, () => {
         loadSites();
         showToast('siteAdded', { url });
         // Notify content script to update display
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        browserAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
-            chrome.tabs.sendMessage(tabs[0].id, {
+            browserAPI.tabs.sendMessage(tabs[0].id, {
               type: 'updateResults'
             });
           }
@@ -232,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sort selector event listener
   sortSelect.addEventListener('change', (e) => {
-    chrome.storage.local.get(['sites'], ({ sites = [] }) => {
+    browserAPI.storage.local.get(['sites'], ({ sites = [] }) => {
       const sortedSites = sortSites(sites, e.target.value);
       renderSites(sortedSites);
     });
@@ -286,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    chrome.storage.local.get(['sites'], (data) => {
+    browserAPI.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const siteIndex = sites.findIndex(site => site.url === oldUrl);
 
@@ -297,13 +369,13 @@ document.addEventListener('DOMContentLoaded', () => {
           : `*://${newUrl.replace(/^www\./, '')}/*`;
 
         sites[siteIndex].url = standardUrl;
-        chrome.storage.local.set({ sites }, () => {
+        browserAPI.storage.local.set({ sites }, () => {
           loadSites();
           showToast('urlUpdated', { oldUrl, newUrl });
           // Notify content script to update display
-          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          browserAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
-              chrome.tabs.sendMessage(tabs[0].id, {
+              browserAPI.tabs.sendMessage(tabs[0].id, {
                 type: 'updateResults'
               });
             }
@@ -340,18 +412,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update site attributes
   function updateSite(url, updates) {
-    chrome.storage.local.get(['sites'], (data) => {
+    browserAPI.storage.local.get(['sites'], (data) => {
       const sites = data.sites || [];
       const siteIndex = sites.findIndex(site => site.url === url);
 
       if (siteIndex !== -1) {
         sites[siteIndex] = { ...sites[siteIndex], ...updates };
-        chrome.storage.local.set({ sites }, () => {
+        browserAPI.storage.local.set({ sites }, () => {
           loadSites();
           // Notify content script to update display
-          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          browserAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]) {
-              chrome.tabs.sendMessage(tabs[0].id, {
+              browserAPI.tabs.sendMessage(tabs[0].id, {
                 type: 'updateResults'
               });
             }
@@ -359,6 +431,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
+  }
+
+  function createColorPanel(url, currentColor, buttonElement) {
+    const panel = document.createElement('div');
+    panel.className = 'color-panel';
+    
+    // Predefined colors
+    const colors = [
+      '#e6ffe6', '#ffe6e6', '#e6e6ff', '#ffffe6',
+      '#e6ffff', '#ffe6ff', '#f0f0f0', '#ffffff'
+    ];
+    
+    // Create color grid
+    const grid = document.createElement('div');
+    grid.className = 'color-grid';
+    colors.forEach(color => {
+      const colorBtn = document.createElement('button');
+      colorBtn.className = 'color-option';
+      colorBtn.style.backgroundColor = color;
+      colorBtn.title = color;
+      if (color === currentColor) {
+        colorBtn.classList.add('selected');
+      }
+      
+      colorBtn.addEventListener('click', () => {
+        updateSite(url, { color });
+        buttonElement.style.backgroundColor = color;
+        buttonElement.dataset.color = color;
+        panel.remove();
+      });
+      
+      grid.appendChild(colorBtn);
+    });
+    
+    // Create custom color input
+    const customColor = document.createElement('div');
+    customColor.className = 'custom-color';
+    
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = currentColor;
+    colorInput.addEventListener('change', () => {
+      updateSite(url, { color: colorInput.value });
+      buttonElement.style.backgroundColor = colorInput.value;
+      buttonElement.dataset.color = colorInput.value;
+      panel.remove();
+    });
+    
+    customColor.appendChild(colorInput);
+    
+    panel.appendChild(grid);
+    panel.appendChild(customColor);
+    
+    return panel;
   }
 
   // Initial load

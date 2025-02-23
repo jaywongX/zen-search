@@ -4,6 +4,7 @@
  */
 
 import { updateLanguage, getCurrentLanguage, getMessage } from './i18n.js';
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 /**
  * Initialize settings page
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clearDataBtn = document.getElementById('clearDataBtn');
   clearDataBtn.addEventListener('click', () => {
     if (confirm(getMessage('clearDataConfirm'))) {
-      chrome.storage.local.set({ sites: [] }, () => {
+      browserAPI.storage.local.set({ sites: [] }, () => {
         alert(getMessage('dataCleared'));
       });
     }

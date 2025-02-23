@@ -1,3 +1,4 @@
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 // 定义语言包
 const translations = {
   en: {
@@ -88,7 +89,7 @@ const translations = {
 
 function getCurrentLanguage() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(['language'], ({ language }) => {
+    browserAPI.storage.local.get(['language'], ({ language }) => {
       resolve(language || 'en');
     });
   });
@@ -100,7 +101,7 @@ function getMessage(key) {
 }
 
 async function updateLanguage(lang) {
-  await chrome.storage.local.set({ language: lang });
+  await browserAPI.storage.local.set({ language: lang });
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
@@ -118,7 +119,7 @@ async function updateLanguage(lang) {
     }
   });
 
-  chrome.runtime.sendMessage({
+  browserAPI.runtime.sendMessage({
     type: 'updateContextMenus',
     language: lang
   });

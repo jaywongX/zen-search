@@ -1,5 +1,6 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
+  "default_locale": "en",
   "name": "ZenSearch - Search in Peace",
   "version": "1.0.3",
   "description": "Enhance search results by blocking unwanted sites and highlighting trusted sources. Find quality content without distractions.",
@@ -11,8 +12,15 @@
     "128": "icons/icon128.png"
   },
   "background": {
-    "service_worker": "background.js",
-    "type": "module"
+    "scripts": ["background.js"],
+    "type": "module",
+    "persistent": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "zensearch@jaywong.com",
+      "strict_min_version": "57.0"
+    }
   },
   "content_scripts": [
     {
@@ -311,12 +319,10 @@
     "storage",
     "activeTab",
     "scripting",
-    "contextMenus"
+    "menus",
+    "<all_urls>"
   ],
-  "optional_host_permissions": [
-    "*://*/*"
-  ],
-  "action": {
+  "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -331,15 +337,9 @@
       "description": "Hide the current search results"
     }
   },
-  "default_locale": "en",
   "web_accessible_resources": [
-    {
-      "resources": [
-        "icons/*"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
-    }
-  ]
+    "icons/*",
+    "node_modules/@simonwep/pickr/dist/themes/*.css"
+  ],
+  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline';"
 }

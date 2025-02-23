@@ -598,3 +598,16 @@
   font-weight: 500;
   margin-bottom: 4px;
 }
+
+.pickr-button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pickr-button[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
