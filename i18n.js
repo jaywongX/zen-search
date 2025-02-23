@@ -36,7 +36,11 @@ const translations = {
     proposeFeature: "Propose a New Feature",
     confirmHide: "Hide search results from {domain}?",
     confirm: "Confirm",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    donateDescription: "Buy me a coffee",
+    donateTitle: "Support ZenSearch",
+    kofiHint: "Buy me a coffee by ko-fi",
+    afdianHint: "Buy me a coffee by afdian"
   },
   zh_CN: {
     extName: "ZenSearch - Search in Peace",
@@ -74,13 +78,15 @@ const translations = {
     proposeFeature: "提出新功能",
     confirmHide: "是否隐藏来自 {domain} 的搜索结果？",
     confirm: "确认",
-    cancel: "取消"
+    cancel: "取消",
+    donateDescription: "请我喝杯咖啡",
+    donateTitle: "支持 ZenSearch",
+    kofiHint: "通过Ko-fi请我喝杯咖啡",
+    afdianHint: "通过爱发电请我喝杯咖啡"
   }
 };
 
-// 获取当前语言
 function getCurrentLanguage() {
-  // 改为返回 Promise
   return new Promise((resolve) => {
     chrome.storage.local.get(['language'], ({ language }) => {
       resolve(language || 'en');
@@ -88,18 +94,14 @@ function getCurrentLanguage() {
   });
 }
 
-// 获取翻译文本
 function getMessage(key) {
   const lang = getCurrentLanguage();
   return translations[lang]?.[key] || translations.en[key];
 }
 
-// 更新界面语言
 async function updateLanguage(lang) {
-  // 使用 chrome.storage.local 存储语言设置
   await chrome.storage.local.set({ language: lang });
 
-  // 更新界面文本
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const message = translations[lang]?.[key];
@@ -108,7 +110,6 @@ async function updateLanguage(lang) {
     }
   });
 
-  // 更新占位符文本
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     const message = translations[lang]?.[key];
@@ -117,7 +118,6 @@ async function updateLanguage(lang) {
     }
   });
 
-  // 更新右键菜单
   chrome.runtime.sendMessage({
     type: 'updateContextMenus',
     language: lang

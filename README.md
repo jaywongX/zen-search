@@ -42,7 +42,7 @@ A browser extension to customize and enhance search engine results.
 1. Click the extension icon in your browser toolbar
 2. Add websites you want to highlight or hide:
    - Enter the URL or domain pattern
-   - Choose whether to favorite (❤️) or block (🚫)
+   - Choose whether to favorite or block
    - Customize highlight colors for favorite sites
 3. Browse search results with your preferences applied
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Support ZenSearch</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="zen-settings-page">
+  <div class="zen-settings-header">
+    <button class="zen-back-button" id="backBtn">
+      <svg class="zen-back-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="zen-settings-title-container">
+      <h1 class="zen-settings-title" data-i18n="donateTitle"></h1>
+    </div>
+  </div>
+
+  <div class="zen-settings-content">
+
+    <div class="zen-donate-methods">
+      <a href="https://ko-fi.com/jaywong" target="_blank" class="zen-donate-item">
+        <img src="icons/kofi.png" alt="Ko-fi" class="zen-donate-icon">
+        <div class="zen-donate-info">
+          <div class="zen-donate-name" data-i18n="kofiHint">Buy me a coffee by ko-fi</div>
+        </div>
+      </a>
+
+      <a href="https://afdian.com/a/jaywong" target="_blank" class="zen-donate-item">
+        <img src="icons/afdian.png" alt="afdian" class="zen-donate-icon">
+        <div class="zen-donate-info">
+          <div class="zen-donate-name" data-i18n="afdianHint">Buy me a coffee by afdian</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <script type="module" src="i18n.js"></script>
+  <script type="module" src="donate.js"></script>
+</body>
+</html> 

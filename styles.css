@@ -406,10 +406,19 @@
   font-size: 14px;
   color: #333;
   z-index: 1;
+  align-items: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.zen-back-button:hover {
+  background-color: #f5f5f5;
 }
 
 .zen-back-icon {
-  font-size: 14px;
+  display: block;
+  color: #666;
 }
 
 .zen-settings-title {
@@ -449,6 +458,14 @@
 
 .zen-menu-item:hover {
   background-color: #f5f5f5;
+}
+
+.zen-menu-item[href*="ko-fi"] {
+  color: #13C3FF;
+}
+
+.zen-menu-item[href*="ko-fi"]:hover {
+  background-color: #E6F7FF;
 }
 
 .zen-menu-icon {
@@ -542,4 +559,42 @@
   margin: 10px 0;
   font-size: 14px;
   line-height: 1.5;
+}
+
+.zen-donate-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zen-donate-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.zen-donate-item:hover {
+  border-color: #13C3FF;
+  background-color: #E6F7FF;
+}
+
+.zen-donate-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 16px;
+}
+
+.zen-donate-info {
+  flex: 1;
+}
+
+.zen-donate-name {
+  font-weight: 500;
+  margin-bottom: 4px;
 }

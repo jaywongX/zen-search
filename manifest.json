@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ZenSearch - Search in Peace",
   "version": "1.0.2",
-  "description": "Enhance your search experience with tranquility. Filter distractions, highlight trusted sources, and customize search results to find quality content faster. A mindful search companion.",
+  "description": "Enhance search results by blocking unwanted sites and highlighting trusted sources. Find quality content without distractions.",
   "short_name": "ZenSearch",
   "author": "Jay Wong",
   "icons": {

@@ -8,8 +8,9 @@
 <body class="zen-settings-page">
   <div class="zen-settings-header">
     <button class="zen-back-button" id="backBtn">
-      <span class="zen-back-icon">←</span>
-      <span data-i18n="back">Back</span>
+      <svg class="zen-back-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </button>
     <div class="zen-settings-title-container">
       <h1 class="zen-settings-title" data-i18n="settings">Settings</h1>
@@ -18,10 +19,10 @@
 
   <div class="zen-settings-content">
     <div class="zen-menu-items">
-      <button class="zen-menu-item" id="clearDataBtn">
+      <a href="#" class="zen-menu-item" id="clearDataBtn">
         <span class="zen-menu-icon">🗑️</span>
-        <span class="zen-menu-text" data-i18n="clearData">Clear All Data</span>
-      </button>
+        <span class="zen-menu-text" data-i18n="clearData">Clear Data</span>
+      </a>
       
       <a href="https://github.com/jaywongX/zen-search/issues/new?template=bug_report.md" target="_blank" class="zen-menu-item">
         <span class="zen-menu-icon">🐛</span>
@@ -32,6 +33,12 @@
         <span class="zen-menu-icon">💡</span>
         <span class="zen-menu-text" data-i18n="proposeFeature">Propose a New Feature</span>
       </a>
+      
+      <a href="donate.html" class="zen-menu-item">
+        <span class="zen-menu-icon">☕</span>
+        <span class="zen-menu-text" data-i18n="donateDescription"></span>
+      </a>
+      
     </div>
   </div>
 

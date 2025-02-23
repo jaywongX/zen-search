@@ -548,7 +548,6 @@ function initialize() {
   const engine = getCurrentEngine();
   if (!engine) return;
 
-  // 如果页面还没加载完成，等待加载完成后再执行
   if (document.readyState !== 'complete') {
     window.addEventListener('load', () => {
       filterResults();
