@@ -103,15 +103,59 @@ browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+/**
+ * Handles URL redirects from Google and Bing search results
+ * @param {string} url - The URL to handle
+ * @returns {string} The original or redirected URL
+ */
+function handleRedirect(url) {  
+  // handles redirected links to Google search results
+  if (url.match(/^https?:\/\/(?:[\w-]+\.)*google\.[a-z.]+\/url\?/i)) {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    url = urlParams.get('url') || url;
+  }
+  // handles redirected links to Bing search results
+  else if (url.match(/^https?:\/\/(?:[\w-]+\.)*bing\.[a-z.]+\/ck\/a\?/i)) {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    const encodedUrl = urlParams.get('u');
+    if (encodedUrl) {
+      try { 
+        url = atob(encodedUrl.slice(2)) || url;
+      } catch (e) {
+        console.error('Error decoding Bing URL:', e);
+      }
+    }
+  }
+  // handles redirected links to Yahoo search results
+  else if (url.match(/^https?:\/\/r\.search\.yahoo\.com\/.+\/RU=/i)) {
+    try {
+      const matches = url.match(/\/RU=([^/]+)\/RK=/);
+      if (matches && matches[1]) {
+        url = decodeURIComponent(matches[1]);
+      }
+    } catch (e) {
+      console.error('Error parsing Yahoo redirect URL:', e);
+    }
+  }
+  // handles redirected links to AOL search results
+  else if (url.match(/^https?:\/\/(?:[\w-]+\.)*search\.aol\.com\/click\/.+\/RU=/i)) {
+    try {
+      const matches = url.match(/\/RU=([^/]+)\/RK=/);
+      if (matches && matches[1]) {
+        url = decodeURIComponent(matches[1]);
+      }
+    } catch (e) {
+      console.error('Error parsing AOL redirect URL:', e);
+    }
+  }
+  return url;
+}
+
 menuAPI.onClicked.addListener((info, tab) => {
   let domain;
   if (info.linkUrl) {
     let url = info.linkUrl;
-    // handles redirected links to Google search results
-    if (url.match(/^https?:\/\/(?:[\w-]+\.)*google\.[a-z.]+\/url\?/i)) {
-      const urlParams = new URLSearchParams(new URL(url).search);
-      url = urlParams.get('url') || url;
-    }
+    url = handleRedirect(url);
     domain = new URL(url).hostname;
   } else {
     domain = new URL(tab.url).hostname;
@@ -146,35 +190,45 @@ function addToList(domain, listType, tabId) {
         top: false
       });
 
-      browserAPI.storage.local.set({ sites }, () => {
+      const storagePromise = typeof browser !== 'undefined' 
+        ? browserAPI.storage.local.set({ sites })
+        : new Promise((resolve) => browserAPI.storage.local.set({ sites }, resolve));
+
+      storagePromise.then(() => {
         const message = listType === 'favorites'
           ? translations[lang].addedToFavorites.replace('{domain}', domain)
           : translations[lang].siteBlocked.replace('{domain}', domain);
 
-        browserAPI.tabs.sendMessage(tabId, {
-          type: 'showToast',
-          message: message
-        });
-
-        browserAPI.tabs.sendMessage(tabId, {
-          type: 'updateResults'
-        });
+        Promise.all([
+          browserAPI.tabs.sendMessage(tabId, {
+            type: 'showToast',
+            message: message
+          }),
+          browserAPI.tabs.sendMessage(tabId, {
+            type: 'updateResults'
+          })
+        ]).catch(console.error);
       });
     } else {
       existingSite.blocked = listType === 'blocked';
-      browserAPI.storage.local.set({ sites }, () => {
+      const storagePromise = typeof browser !== 'undefined' 
+        ? browserAPI.storage.local.set({ sites })
+        : new Promise((resolve) => browserAPI.storage.local.set({ sites }, resolve));
+
+      storagePromise.then(() => {
         const message = listType === 'blocked'
           ? translations[lang].siteBlocked.replace('{domain}', domain)
           : translations[lang].addedToFavorites.replace('{domain}', domain);
 
-        browserAPI.tabs.sendMessage(tabId, {
-          type: 'showToast',
-          message: message
-        });
-
-        browserAPI.tabs.sendMessage(tabId, {
-          type: 'updateResults'
-        });
+        Promise.all([
+          browserAPI.tabs.sendMessage(tabId, {
+            type: 'showToast',
+            message: message
+          }),
+          browserAPI.tabs.sendMessage(tabId, {
+            type: 'updateResults'
+          })
+        ]).catch(console.error);
       });
     }
   });

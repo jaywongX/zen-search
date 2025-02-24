@@ -27,26 +27,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentSortBy = sortSelect.value;
     const sortedSites = sortSites(sites, currentSortBy);
 
-    siteList.innerHTML = sortedSites.map(site => `
-      <div class="zen-site-item" data-url="${site.url}">
-        <input type="text" class="zen-site-url-input" value="${site.url}">
-        <div class="zen-site-actions">
-          <button class="zen-block-btn ${site.blocked ? 'blocked' : ''}" title="${site.blocked ? translations[currentLang].unblocked : translations[currentLang].blocked}">
-            ${site.blocked ? '🚫' : '👁️'}
-          </button>
-          <div class="zen-color-picker-container">
-            <div class="pickr-button" 
-              data-color="${site.color}"
-              data-url="${site.url}"
-              ${site.blocked ? 'data-disabled="true"' : ''}></div>
-          </div>
-          <button class="zen-pin-btn ${site.top ? 'pinned' : ''}" title="${site.top ? translations[currentLang].untop : translations[currentLang].top}">
-            ${site.top ? '📌' : '📍'}
-          </button>
-          <button class="zen-delete-btn" title="${translations[currentLang].delete}">-</button>
-        </div>
-      </div>
-    `).join('');
+    siteList.textContent = '';
+    sortedSites.forEach(site => {
+      const siteItem = document.createElement('div');
+      siteItem.className = 'zen-site-item';
+      siteItem.dataset.url = site.url;
+      
+      const urlInput = document.createElement('input');
+      urlInput.type = 'text';
+      urlInput.className = 'zen-site-url-input';
+      urlInput.value = site.url;
+      
+      const actions = document.createElement('div');
+      actions.className = 'zen-site-actions';
+      
+      const blockBtn = document.createElement('button');
+      blockBtn.className = `zen-block-btn ${site.blocked ? 'blocked' : ''}`;
+      blockBtn.title = site.blocked ? translations[currentLang].unblocked : translations[currentLang].blocked;
+      blockBtn.textContent = site.blocked ? '🚫' : '👁️';
+      
+      const colorContainer = document.createElement('div');
+      colorContainer.className = 'zen-color-picker-container';
+      
+      const colorBtn = document.createElement('div');
+      colorBtn.className = 'pickr-button';
+      colorBtn.dataset.color = site.color;
+      colorBtn.dataset.url = site.url;
+      if (site.blocked) colorBtn.dataset.disabled = 'true';
+      
+      const pinBtn = document.createElement('button');
+      pinBtn.className = `zen-pin-btn ${site.top ? 'pinned' : ''}`;
+      pinBtn.title = site.top ? translations[currentLang].untop : translations[currentLang].top;
+      pinBtn.textContent = site.top ? '📌' : '📍';
+      
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'zen-delete-btn';
+      deleteBtn.title = translations[currentLang].delete;
+      deleteBtn.textContent = '-';
+      
+      colorContainer.appendChild(colorBtn);
+      actions.appendChild(blockBtn);
+      actions.appendChild(colorContainer);
+      actions.appendChild(pinBtn);
+      actions.appendChild(deleteBtn);
+      
+      siteItem.appendChild(urlInput);
+      siteItem.appendChild(actions);
+      siteList.appendChild(siteItem);
+    });
 
     siteList.addEventListener('click', (e) => {
       const siteItem = e.target.closest('.zen-site-item');

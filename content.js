@@ -144,6 +144,13 @@ const SEARCH_ENGINES = {
   }
 };
 
+const DEBUG = false;
+function debug(...args) {
+    if (DEBUG) {
+        console.debug(...args);
+    }
+}
+
 /**
  * Get current search engine configuration
  * @returns {object|undefined} Current search engine configuration
@@ -162,7 +169,7 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (!hoveredResult) {
       return;
     }
-    
+
     const engine = getCurrentEngine();
     if (!engine) {
       return;
@@ -177,9 +184,9 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (!url) {
       return;
     }
-    
+
     const domain = new URL(url).hostname;
-    
+
     browserAPI.runtime.sendMessage(
       { type: 'getTranslation', key: 'confirmHide', params: { domain } },
       (confirmText) => {
@@ -191,40 +198,67 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
               (cancelBtnText) => {
                 const confirmDialog = document.createElement('div');
                 confirmDialog.className = 'zen-confirm-dialog';
-                confirmDialog.innerHTML = `
-                  <div class="zen-confirm-content">
-                    <div class="zen-confirm-header">
-                      <img src="${browserAPI.runtime.getURL('icons/icon128.png')}" class="zen-confirm-icon" alt="ZenSearch">
-                      <h3 class="zen-confirm-title">ZenSearch</h3>
-                    </div>
-                    <p>${confirmText}</p>
-                    <div class="zen-confirm-buttons">
-                      <button class="zen-confirm-yes">${confirmBtnText}</button>
-                      <button class="zen-confirm-no">${cancelBtnText}</button>
-                    </div>
-                  </div>
-                `;
-                
+
+                const content = document.createElement('div');
+                content.className = 'zen-confirm-content';
+
+                const header = document.createElement('div');
+                header.className = 'zen-confirm-header';
+
+                const icon = document.createElement('img');
+                icon.src = browserAPI.runtime.getURL('icons/icon128.png');
+                icon.className = 'zen-confirm-icon';
+                icon.alt = 'ZenSearch';
+
+                const title = document.createElement('h3');
+                title.className = 'zen-confirm-title';
+                title.textContent = 'ZenSearch';
+
+                header.appendChild(icon);
+                header.appendChild(title);
+
+                const text = document.createElement('p');
+                text.textContent = confirmText;
+
+                const buttons = document.createElement('div');
+                buttons.className = 'zen-confirm-buttons';
+
+                const yesBtn = document.createElement('button');
+                yesBtn.className = 'zen-confirm-yes';
+                yesBtn.textContent = confirmBtnText;
+
+                const noBtn = document.createElement('button');
+                noBtn.className = 'zen-confirm-no';
+                noBtn.textContent = cancelBtnText;
+
+                buttons.appendChild(yesBtn);
+                buttons.appendChild(noBtn);
+
+                content.appendChild(header);
+                content.appendChild(text);
+                content.appendChild(buttons);
+                confirmDialog.appendChild(content);
+
                 document.body.appendChild(confirmDialog);
-                
+
                 confirmDialog.addEventListener('click', (e) => {
                   if (e.target === confirmDialog) {
                     confirmDialog.remove();
                   }
                 });
-                
+
                 confirmDialog.querySelector('.zen-confirm-yes').addEventListener('click', () => {
-                  
+
                   resultElement.style.display = 'none';
-                  
+
                   const wildcardDomain = `*://*.${domain}/*`;
-                  
+
                   browserAPI.storage.local.get(['sites', 'language'], (data) => {
                     const sites = data.sites || [];
                     const lang = data.language || 'en';
-                    
+
                     const existingSite = sites.find(site => site.url === wildcardDomain);
-                    
+
                     if (existingSite) {
                       existingSite.blocked = true;
                       browserAPI.storage.local.set({ sites }, () => {
@@ -243,7 +277,7 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         color: '#e6ffe6',
                         top: false
                       });
-                      
+
                       browserAPI.storage.local.set({ sites }, () => {
                         browserAPI.runtime.sendMessage({ type: 'updateSites' });
                         browserAPI.runtime.sendMessage(
@@ -255,10 +289,10 @@ browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
                       });
                     }
                   });
-                  
+
                   confirmDialog.remove();
                 });
-                
+
                 confirmDialog.querySelector('.zen-confirm-no').addEventListener('click', () => {
                   confirmDialog.remove();
                 });
@@ -286,7 +320,7 @@ function matchDomain(url, pattern) {
     }
 
     const urlObj = new URL(url);
-    
+
     const [scheme, rest] = pattern.split('://');
     if (!rest) return false;
 
@@ -307,7 +341,7 @@ function matchDomain(url, pattern) {
         return false;
       }
     }
-    
+
     if (path === '/*') {
       return true;
     } else {
@@ -334,6 +368,56 @@ function showToast(message) {
   setTimeout(() => {
     toast.remove();
   }, 2000);
+}
+
+/**
+ * Handles URL redirects from Google and Bing search results
+ * @param {string} url - The URL to handle
+ * @returns {string} The original or redirected URL
+ */
+function handleRedirect(url) {
+  // handles redirected links to Google search results
+  if (url.match(/^https?:\/\/(?:[\w-]+\.)*google\.[a-z.]+\/url\?/i)) {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    url = urlParams.get('url') || url;
+  }
+  // handles redirected links to Bing search results
+  else if (url.match(/^https?:\/\/(?:[\w-]+\.)*bing\.[a-z.]+\/ck\/a\?/i)) {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    const encodedUrl = urlParams.get('u');
+    if (encodedUrl) {
+      try {
+        url = atob(encodedUrl.slice(2)) || url;
+      } catch (e) {
+        console.error('Error decoding Bing URL:', e);
+      }
+    }
+  }
+  // handles redirected links to Yahoo search results
+  else if (url.match(/^https?:\/\/r\.search\.yahoo\.com\/.+\/RU=/i)) {
+    try {
+      // Extract URL between RU= and /RK=
+      const matches = url.match(/\/RU=([^/]+)\/RK=/);
+      if (matches && matches[1]) {
+        url = decodeURIComponent(matches[1]);
+      }
+    } catch (e) {
+      console.error('Error parsing Yahoo redirect URL:', e);
+    }
+  }
+  // handles redirected links to AOL search results
+  else if (url.match(/^https?:\/\/(?:[\w-]+\.)*search\.aol\.com\/click\/.+\/RU=/i)) {
+    try {
+      const matches = url.match(/\/RU=([^/]+)\/RK=/);
+      if (matches && matches[1]) {
+        url = decodeURIComponent(matches[1]);
+      }
+    } catch (e) {
+      console.error('Error parsing AOL redirect URL:', e);
+    }
+  }
+  
+  return url;
 }
 
 /**
@@ -377,6 +461,8 @@ function extractUrl(result) {
     }
   }
 
+  url = handleRedirect(url);
+  debug('Extracted URL:', url);
   return url || null;
 }
 
@@ -395,6 +481,7 @@ async function filterResults() {
 
     results = document.querySelectorAll(engine.resultSelector);
     if (results.length === 0) return;
+    debug('results', results);
 
     await processResults(results);
   }, 100);
@@ -406,23 +493,23 @@ async function filterResults() {
  */
 async function processResults(results) {
   for (const result of results) {
-    // 重置样式
+    // reset style
     result.style.removeProperty('display');
     result.style.removeProperty('background-color');
-
-    const url = extractUrl(result);
-    if (!url) continue;
-
-    const { sites = [] } = await browserAPI.storage.local.get('sites');
-    // 匹配规则
-    for (const site of sites) {
+  }
+  const { sites = [] } = await browserAPI.storage.local.get('sites');
+  for (const site of sites) {
+    for (const result of results) {
+      const url = extractUrl(result);
+      if (!url) continue;
       if (matchDomain(url, site.url)) {
         if (site.blocked) {
           result.style.setProperty('display', 'none', 'important');
+          debug(result, ' blocked url ', url);
         } else {
           result.style.setProperty('background-color', site.color, 'important');
+          debug(result, ' highlight url', url, "color", site.color);
         }
-        break;
       }
     }
   }
@@ -571,18 +658,25 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-browserAPI.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'updateResults') {
-    filterResults();
-  }
-  if (message.type === 'showToast') {
-    showToast(message.message);
-  }
-  if (message.type === 'setLanguage') {
-    browserAPI.storage.local.set({ language: message.language }, () => {
-      browserAPI.runtime.reload();
-    });
-  }
+browserAPI.runtime.onMessage.addListener((message, sender) => {
+  // Firefox requires a Promise return for async operations
+  return new Promise(resolve => {
+    if (message.type === 'updateResults') {
+      console.log('Received updateResults message');
+      filterResults();
+      resolve(true);
+    }
+    if (message.type === 'showToast') {
+      showToast(message.message);
+      resolve(true);
+    }
+    if (message.type === 'setLanguage') {
+      browserAPI.storage.local.set({ language: message.language }, () => {
+        browserAPI.runtime.reload();
+        resolve(true);
+      });
+    }
+  });
 });
 
 initialize(); 
