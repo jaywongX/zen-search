@@ -1,50 +1,73 @@
 # ZenSearch - Search in Peace
 
-A browser extension to customize and enhance search engine results.
-
-## Supported Search Engines
-
-- Google
-- Bing
-- DuckDuckGo
-- Yahoo
-- Yahoo Japan
-- Yandex (yandex.com & yandex.ru)
-- Startpage
-- Ecosia
-- Ask
-- AOL
-- Naver
-- Brave Search
-- OneSearch
-- SearX (multiple instances)
-- Qwant
+A browser extension that enhances search results by blocking unwanted sites and highlighting trusted sources.
 
 ## Features
 
-- Block unwanted domains from search results
-- Highlight favorite sites with custom colors
-- Support regex patterns for domain matching
-- Keyboard shortcuts for quick actions
-- Multi-language support (English & Chinese)
-- Works with infinite scroll
-- Real-time updates
+- 🚫 Block unwanted websites from search results
+- 🌈 Highlight favorite websites with custom colors
+- 🔍 Support for multiple search engines:
+   - Google
+   - Bing
+   - DuckDuckGo
+   - Yahoo
+   - Yahoo Japan
+   - Yandex (yandex.com & yandex.ru)
+   - Startpage
+   - Ecosia
+   - Ask
+   - AOL
+   - Naver
+   - Brave Search
+   - OneSearch
+   - SearX (multiple instances)
+   - Qwant
+   - And more...
+- 🎨 Customizable highlight colors
+- 🌐 Support for multiple languages
+- ⌨️ Keyboard shortcut (Alt+H) to quickly hide results
+- 🔄 Real-time updates without page reload
+- 📌 Pin important sites to the top
 
 ## Installation
 
-1. Clone this repository or download the ZIP file
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top right
-4. Click "Load unpacked" and select the extension directory
+### Chrome Web Store
+1. Visit [ZenSearch on Chrome Web Store]()
+2. Click "Add to Chrome"
+3. Follow the installation prompts
+
+### Firefox Add-ons
+1. Visit [ZenSearch on Firefox Add-ons]()
+2. Click "Add to Firefox"
+3. Follow the installation prompts
+
+### Manual Installation (Development)
+
+#### Chrome
+1. Clone this repository
+2. Run `npm install`
+3. Run `build-chrome.bat` (Windows) or `build-chrome.sh` (Linux/Mac)
+4. Open Chrome and go to `chrome://extensions/`
+5. Enable "Developer mode"
+6. Click "Load unpacked" and select the `build/chrome` directory
+
+#### Firefox
+1. Clone this repository
+2. Run `npm install`
+3. Run `build-firefox.bat` (Windows) or `build-firefox.sh` (Linux/Mac)
+4. Open Firefox and go to `about:debugging#/runtime/this-firefox`
+5. Click "Load Temporary Add-on" and select `build/firefox/manifest.json`
 
 ## Usage
 
-1. Click the extension icon in your browser toolbar
-2. Add websites you want to highlight or hide:
-   - Enter the URL or domain pattern
-   - Choose whether to favorite or block
-   - Customize highlight colors for favorite sites
-3. Browse search results with your preferences applied
+1. Click the ZenSearch icon in your browser toolbar
+2. Add websites to block or highlight:
+   - Enter the domain pattern (e.g., `*://*.example.com/*`)
+   - Use the block/highlight toggle
+   - Choose a custom color for highlighting
+   - Pin important sites to the top
+3. Right-click on any search result to quickly block or highlight its domain
+4. Use Alt+H to hide the currently hovered search result
 
 ## Development
 

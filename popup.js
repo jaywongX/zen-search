@@ -1,8 +1,16 @@
-import { updateLanguage, getCurrentLanguage, getMessage, translations } from './i18n.js';
+import { updateLanguage, translations } from './i18n.js';
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
-document.addEventListener('DOMContentLoaded', () => {
+function getCurrentLanguage() {
+  return new Promise((resolve) => {
+    browserAPI.storage.local.get(['language'], ({ language }) => {
+      resolve(language || 'en');
+    });
+  });
+}
 
+document.addEventListener('DOMContentLoaded', () => {
+  let addSitePickr;
   const siteList = document.getElementById('siteList');
   const searchInput = document.getElementById('searchInput');
   const settingsBtn = document.getElementById('settingsBtn');
@@ -10,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const ratingSelect = document.getElementById('ratingSelect');
   const addSiteBtn = document.getElementById('addSiteBtn');
   const sortSelect = document.getElementById('sortSelect');
+  const colorSelect = document.getElementById('colorSelect');
 
   function loadSites() {
     browserAPI.storage.local.get(['sites'], (data) => {
@@ -300,15 +309,57 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => toast.remove(), 2000);
   }
 
-  // Bind add button event
+  // Initialize Pickr for add site color selector
+  addSitePickr = Pickr.create({
+    el: colorSelect,
+    theme: 'classic',
+    default: '#e6ffe6',
+    swatches: [
+      '#e6ffe6', '#ffe6e6', '#e6e6ff', '#ffffe6',
+      '#e6ffff', '#ffe6ff', '#f0f0f0', '#ffffff'
+    ],
+    components: {
+      preview: true,
+      opacity: true,
+      hue: true,
+      interaction: {
+        hex: true,
+        rgba: true,
+        input: true,
+        save: true
+      }
+    }
+  });
+
+  // Update color button style when color changes
+  addSitePickr.on('change', (color) => {
+    colorSelect.style.backgroundColor = color.toHEXA().toString();
+  });
+
+  // Hide color picker when save is clicked
+  addSitePickr.on('save', (color) => {
+    if (color) {
+      colorSelect.style.backgroundColor = color.toHEXA().toString();
+    }
+    addSitePickr.hide();
+  });
+
+  // Hide color picker when cancel is clicked
+  addSitePickr.on('cancel', () => {
+    addSitePickr.hide();
+  });
+
+  // Initialize color button style
+  colorSelect.style.backgroundColor = '#e6ffe6';
+
+  // Add site button click handler
   addSiteBtn.addEventListener('click', () => {
     const url = urlInput.value.trim();
     const blocked = ratingSelect.value === 'blocked';
-    const color = colorSelect.value;
+    const color = addSitePickr.getColor().toHEXA().toString();
     if (validateInput(url)) {
       addSite(url, blocked, color);
     }
-
   });
 
   // Bind Enter key to add
@@ -321,7 +372,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addSite(url, blocked, color);
       }
     }
-
   });
 
   // URL input box validation

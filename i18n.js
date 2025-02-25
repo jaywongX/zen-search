@@ -1,5 +1,3 @@
-const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
-// 定义语言包
 const translations = {
   en: {
     extName: "ZenSearch - Search in Peace",
@@ -87,18 +85,7 @@ const translations = {
   }
 };
 
-function getCurrentLanguage() {
-  return new Promise((resolve) => {
-    browserAPI.storage.local.get(['language'], ({ language }) => {
-      resolve(language || 'en');
-    });
-  });
-}
-
-function getMessage(key) {
-  const lang = getCurrentLanguage();
-  return translations[lang]?.[key] || translations.en[key];
-}
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 async function updateLanguage(lang) {
   await browserAPI.storage.local.set({ language: lang });
@@ -121,8 +108,9 @@ async function updateLanguage(lang) {
 
   browserAPI.runtime.sendMessage({
     type: 'updateContextMenus',
-    language: lang
+    contextMenuFavoriteTitle: translations[lang]?.contextMenuFavorite,
+    contextMenuBlockTitle: translations[lang]?.contextMenuBlock
   });
 }
 
-export { translations, getMessage, getCurrentLanguage, updateLanguage }; 
+export { translations, updateLanguage }; 

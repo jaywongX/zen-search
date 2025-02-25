@@ -40,6 +40,7 @@ copy /y popup.js "build\firefox\"
 copy /y settings.html "build\firefox\"
 copy /y settings.js "build\firefox\"
 copy /y styles.css "build\firefox\"
+copy /y README.md "build\firefox\"
 
 :: Create zip
 cd build\firefox

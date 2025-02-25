@@ -40,6 +40,7 @@ copy /y popup.js "build\chrome\"
 copy /y settings.html "build\chrome\"
 copy /y settings.js "build\chrome\"
 copy /y styles.css "build\chrome\"
+copy /y README.md "build\chrome\"
 
 :: Create zip
 cd build\chrome

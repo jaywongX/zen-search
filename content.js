@@ -662,7 +662,6 @@ browserAPI.runtime.onMessage.addListener((message, sender) => {
   // Firefox requires a Promise return for async operations
   return new Promise(resolve => {
     if (message.type === 'updateResults') {
-      console.log('Received updateResults message');
       filterResults();
       resolve(true);
     }

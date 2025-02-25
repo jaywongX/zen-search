@@ -3,8 +3,22 @@
  * Handles settings page interactions and data management
  */
 
-import { updateLanguage, getCurrentLanguage, getMessage } from './i18n.js';
+import { updateLanguage } from './i18n.js';
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
+
+function getCurrentLanguage() {
+  return new Promise((resolve) => {
+    browserAPI.storage.local.get(['language'], ({ language }) => {
+      resolve(language || 'en');
+    });
+  });
+}
+
+function getMessage(key) {
+  const lang = getCurrentLanguage();
+  return translations[lang]?.[key] || translations.en[key];
+}
 
 /**
  * Initialize settings page
